@@ -14,16 +14,235 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      assessments: {
+        Row: {
+          annual_kwh: number
+          annual_savings: number
+          capacity_kw: number
+          city: string | null
+          cost: number
+          created_at: string
+          id: string
+          inputs: Json
+          payback_years: number | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          annual_kwh: number
+          annual_savings: number
+          capacity_kw: number
+          city?: string | null
+          cost: number
+          created_at?: string
+          id?: string
+          inputs?: Json
+          payback_years?: number | null
+          title: string
+          user_id?: string
+        }
+        Update: {
+          annual_kwh?: number
+          annual_savings?: number
+          capacity_kw?: number
+          city?: string | null
+          cost?: number
+          created_at?: string
+          id?: string
+          inputs?: Json
+          payback_years?: number | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      inspections: {
+        Row: {
+          created_at: string
+          id: string
+          image_path: string
+          kind: string
+          plant_id: string | null
+          result: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_path: string
+          kind: string
+          plant_id?: string | null
+          result?: Json | null
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_path?: string
+          kind?: string
+          plant_id?: string | null
+          result?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspections_plant_id_fkey"
+            columns: ["plant_id"]
+            isOneToOne: false
+            referencedRelation: "plants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_tasks: {
+        Row: {
+          created_at: string
+          done: boolean
+          due_on: string | null
+          id: string
+          plant_id: string | null
+          priority: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          done?: boolean
+          due_on?: string | null
+          id?: string
+          plant_id?: string | null
+          priority?: string
+          title: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          done?: boolean
+          due_on?: string | null
+          id?: string
+          plant_id?: string | null
+          priority?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_tasks_plant_id_fkey"
+            columns: ["plant_id"]
+            isOneToOne: false
+            referencedRelation: "plants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plants: {
+        Row: {
+          capacity_kw: number
+          commissioned_on: string | null
+          created_at: string
+          id: string
+          inverter_spec: string | null
+          latitude: number | null
+          location: string | null
+          longitude: number | null
+          name: string
+          notes: string | null
+          panel_spec: string | null
+          user_id: string
+        }
+        Insert: {
+          capacity_kw: number
+          commissioned_on?: string | null
+          created_at?: string
+          id?: string
+          inverter_spec?: string | null
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          name: string
+          notes?: string | null
+          panel_spec?: string | null
+          user_id?: string
+        }
+        Update: {
+          capacity_kw?: number
+          commissioned_on?: string | null
+          created_at?: string
+          id?: string
+          inverter_spec?: string | null
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          name?: string
+          notes?: string | null
+          panel_spec?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          city: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          state: string | null
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          state?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "homeowner" | "operator"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +369,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["homeowner", "operator"],
+    },
   },
 } as const
