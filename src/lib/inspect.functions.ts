@@ -99,7 +99,7 @@ export const analyzeInspection = createServerFn({ method: "POST" })
       }
       const result = JSON.parse(text) as Record<string, unknown>;
       await supabase.from("inspections").update({ result: result as never }).eq("id", insp.id);
-      return { ok: true as const, result };
+      return { ok: true as const, resultJson: JSON.stringify(result) };
     } catch (e) {
       console.error("analyzeInspection", e);
       if (e instanceof GatewayError && e.httpStatus === 402) return { ok: false as const, error: "AI credits are exhausted. Please top up and try again." };
