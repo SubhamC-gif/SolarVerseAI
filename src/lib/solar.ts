@@ -77,7 +77,7 @@ export function recommend(input: AdvisorInput) {
 
 export function monthlySeries(kw: number, perKw = ASSUMPTIONS.specificYield, consumption = 300) {
   return MONTHS.map((m, i) => {
-    const gen = kw * perKw * MONTHLY_FACTORS[i];
+    const gen = kw * perKw * (MONTHLY_FACTORS[i] ?? 0);
     return {
       month: m,
       expected: Math.round(gen),
