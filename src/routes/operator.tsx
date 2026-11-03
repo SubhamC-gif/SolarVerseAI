@@ -41,7 +41,7 @@ const ALERTS = [
 ];
 
 function Operator() {
-  const [pid, setPid] = useState(PLANTS[0].id);
+  const [pid, setPid] = useState(PLANTS[0]!.id);
   const plant = PLANTS.find((p) => p.id === pid) ?? PLANTS[0]!;
   const day = Array.from({ length: 15 }, (_, i) => {
     const h = i + 5;
