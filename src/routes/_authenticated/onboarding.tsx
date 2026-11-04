@@ -38,7 +38,7 @@ function Onboarding() {
     const p = await supabase.from("profiles").upsert({ id, display_name: name || null, city: city || null, state: state || null });
     const r = await supabase.from("user_roles").upsert({ user_id: id, role }, { onConflict: "user_id" });
     setBusy(false);
-    if (p.error || r.error) return toast.error("Could not save your profile.");
+    if (p.error || r.error) { toast.error("Could not save your profile."); return; }
     navigate({ to: homeFor(role), replace: true });
   };
 

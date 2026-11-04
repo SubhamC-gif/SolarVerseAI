@@ -13,7 +13,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AdvisorRouteImport } from './routes/advisor'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedHomeownerRouteImport } from './routes/_authenticated/homeowner'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedOperatorRouteImport } from './routes/_authenticated/operator'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,9 +36,19 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedHomeownerRoute = AuthenticatedHomeownerRouteImport.update({
+  id: '/homeowner',
+  path: '/homeowner',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedOperatorRoute = AuthenticatedOperatorRouteImport.update({
+  id: '/operator',
+  path: '/operator',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
@@ -44,13 +56,17 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/advisor': typeof AdvisorRoute
   '/auth': typeof AuthRoute
+  '/homeowner': typeof AuthenticatedHomeownerRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/operator': typeof AuthenticatedOperatorRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/advisor': typeof AdvisorRoute
   '/auth': typeof AuthRoute
+  '/homeowner': typeof AuthenticatedHomeownerRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/operator': typeof AuthenticatedOperatorRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -58,20 +74,25 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/advisor': typeof AdvisorRoute
   '/auth': typeof AuthRoute
+  '/_authenticated/homeowner': typeof AuthenticatedHomeownerRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/operator': typeof AuthenticatedOperatorRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/advisor' | '/auth' | '/onboarding'
+  fullPaths:
+    '/' | '/advisor' | '/auth' | '/homeowner' | '/onboarding' | '/operator'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/advisor' | '/auth' | '/onboarding'
+  to: '/' | '/advisor' | '/auth' | '/homeowner' | '/onboarding' | '/operator'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/advisor'
     | '/auth'
+    | '/_authenticated/homeowner'
     | '/_authenticated/onboarding'
+    | '/_authenticated/operator'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -111,6 +132,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/homeowner': {
+      id: '/_authenticated/homeowner'
+      path: '/homeowner'
+      fullPath: '/homeowner'
+      preLoaderRoute: typeof AuthenticatedHomeownerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/onboarding': {
       id: '/_authenticated/onboarding'
       path: '/onboarding'
@@ -118,15 +146,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/operator': {
+      id: '/_authenticated/operator'
+      path: '/operator'
+      fullPath: '/operator'
+      preLoaderRoute: typeof AuthenticatedOperatorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedHomeownerRoute: typeof AuthenticatedHomeownerRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedOperatorRoute: typeof AuthenticatedOperatorRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedHomeownerRoute: AuthenticatedHomeownerRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedOperatorRoute: AuthenticatedOperatorRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
