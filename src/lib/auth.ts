@@ -1,3 +1,4 @@
+import { redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
 export type AppRole = "homeowner" | "operator";
@@ -10,3 +11,16 @@ export async function getMyRole(): Promise<AppRole | null> {
 }
 
 export const homeFor = (role: AppRole) => (role === "operator" ? "/operator" : "/homeowner");
+
+/** Route guard: send users without a role to onboarding and users of the other role to their own dashboard. */
+export async function requireRole(role: AppRole) {
+  const mine = await getMyRole();
+  if (!mine) throw redirect({ to: "/onboarding" });
+  if (mine !== role) throw redirect({ to: homeFor(mine) });
+}
+
+export async function currentUserId() {
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) throw new Error("Not signed in");
+  return data.user.id;
+}

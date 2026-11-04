@@ -1,4 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { useMemo, useState } from "react";
 import { Check, ArrowLeft, ArrowRight } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -135,7 +137,10 @@ function Results({ rec, input, city }: { rec: ReturnType<typeof recommend>; inpu
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-light text-forest">Your assessment for {city}</h2>
-        <DemoBadge label="Preliminary estimate" />
+        <div className="flex flex-wrap items-center gap-2">
+          <DemoBadge label="Preliminary estimate" />
+          <SaveAssessment s={s} input={input} city={city} />
+        </div>
       </div>
       <div className="grid gap-4 md:grid-cols-3">
         {opts.map(([k, l]) => {
@@ -187,4 +192,21 @@ function Results({ rec, input, city }: { rec: ReturnType<typeof recommend>; inpu
       </details>
     </div>
   );
+}
+
+function SaveAssessment({ s, input, city }: { s: ReturnType<typeof recommend>["balanced"]; input: AdvisorInput; city: string }) {
+  const [state, setState] = useState<"idle" | "saving" | "saved" | "signin">("idle");
+  const save = async () => {
+    setState("saving");
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return setState("signin");
+    const { error } = await supabase.from("assessments").insert({
+      user_id: u.user.id, title: `${fmt(s.kw, 1)} kW · ${city}`, city, capacity_kw: s.kw, annual_kwh: Math.round(s.annual),
+      annual_savings: Math.round(s.savings), cost: Math.round(s.cost), payback_years: isFinite(s.payback) ? +s.payback.toFixed(1) : null, inputs: input,
+    });
+    if (error) { toast.error("Could not save. Please try again."); return setState("idle"); }
+    toast.success("Saved to your dashboard"); setState("saved");
+  };
+  if (state === "signin") return <Button asChild size="sm"><Link to="/auth">Sign in to save</Link></Button>;
+  return <Button size="sm" onClick={save} disabled={state !== "idle"}>{state === "saved" ? "Saved" : state === "saving" ? "Saving…" : "Save to dashboard"}</Button>;
 }
