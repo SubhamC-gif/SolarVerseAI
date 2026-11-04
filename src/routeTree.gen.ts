@@ -11,8 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdvisorRouteImport } from './routes/advisor'
-import { Route as HomeownerRouteImport } from './routes/homeowner'
-import { Route as OperatorRouteImport } from './routes/operator'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -24,49 +22,31 @@ const AdvisorRoute = AdvisorRouteImport.update({
   path: '/advisor',
   getParentRoute: () => rootRouteImport,
 } as any)
-const HomeownerRoute = HomeownerRouteImport.update({
-  id: '/homeowner',
-  path: '/homeowner',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OperatorRoute = OperatorRouteImport.update({
-  id: '/operator',
-  path: '/operator',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/advisor': typeof AdvisorRoute
-  '/homeowner': typeof HomeownerRoute
-  '/operator': typeof OperatorRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/advisor': typeof AdvisorRoute
-  '/homeowner': typeof HomeownerRoute
-  '/operator': typeof OperatorRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/advisor': typeof AdvisorRoute
-  '/homeowner': typeof HomeownerRoute
-  '/operator': typeof OperatorRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/advisor' | '/homeowner' | '/operator'
+  fullPaths: '/' | '/advisor'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/advisor' | '/homeowner' | '/operator'
-  id: '__root__' | '/' | '/advisor' | '/homeowner' | '/operator'
+  to: '/' | '/advisor'
+  id: '__root__' | '/' | '/advisor'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdvisorRoute: typeof AdvisorRoute
-  HomeownerRoute: typeof HomeownerRoute
-  OperatorRoute: typeof OperatorRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -85,28 +65,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdvisorRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/homeowner': {
-      id: '/homeowner'
-      path: '/homeowner'
-      fullPath: '/homeowner'
-      preLoaderRoute: typeof HomeownerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/operator': {
-      id: '/operator'
-      path: '/operator'
-      fullPath: '/operator'
-      preLoaderRoute: typeof OperatorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdvisorRoute: AdvisorRoute,
-  HomeownerRoute: HomeownerRoute,
-  OperatorRoute: OperatorRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
