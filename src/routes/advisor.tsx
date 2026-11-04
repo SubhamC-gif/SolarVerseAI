@@ -135,7 +135,10 @@ function Results({ rec, input, city }: { rec: ReturnType<typeof recommend>; inpu
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-light text-forest">Your assessment for {city}</h2>
-        <DemoBadge label="Preliminary estimate" />
+        <div className="flex flex-wrap items-center gap-2">
+          <DemoBadge label="Preliminary estimate" />
+          <SaveAssessment s={s} input={input} city={city} />
+        </div>
       </div>
       <div className="grid gap-4 md:grid-cols-3">
         {opts.map(([k, l]) => {
