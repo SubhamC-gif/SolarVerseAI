@@ -25,9 +25,15 @@ export const Route = createFileRoute("/_authenticated/homeowner")({
 });
 
 const NAV = [
-  { icon: LayoutGrid, label: "Overview" }, { icon: Sun, label: "Solar Potential" }, { icon: Settings2, label: "System Planner" },
-  { icon: LineChart, label: "Energy Forecast" }, { icon: IndianRupee, label: "Savings & ROI" }, { icon: Battery, label: "Battery Planner" },
-  { icon: Leaf, label: "Environmental Impact" }, { icon: FileText, label: "My Reports" }, { icon: Settings, label: "Settings" },
+  { icon: LayoutGrid, label: "Overview", to: "/homeowner", exact: true },
+  { icon: Sun, label: "Solar Potential", to: "/homeowner" },
+  { icon: Settings2, label: "System Planner", to: "/homeowner" },
+  { icon: LineChart, label: "Energy Forecast", to: "/homeowner" },
+  { icon: IndianRupee, label: "Savings & ROI", to: "/homeowner" },
+  { icon: Battery, label: "Battery Planner", to: "/homeowner" },
+  { icon: Leaf, label: "Environmental Impact", to: "/homeowner" },
+  { icon: FileText, label: "My Reports", to: "/homeowner" },
+  { icon: Settings, label: "Settings", to: "/homeowner" },
 ];
 
 function Homeowner() {

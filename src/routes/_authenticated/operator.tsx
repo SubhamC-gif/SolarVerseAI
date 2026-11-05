@@ -24,9 +24,16 @@ export const Route = createFileRoute("/_authenticated/operator")({
 });
 
 const NAV = [
-  { icon: LayoutGrid, label: "Overview" }, { icon: Factory, label: "My Solar Plants" }, { icon: Activity, label: "Plant Monitoring" },
-  { icon: LineChart, label: "Energy Forecast" }, { icon: ScanSearch, label: "Fault Detection" }, { icon: Wind, label: "Soiling Analysis" },
-  { icon: Wrench, label: "Maintenance Center" }, { icon: BarChart3, label: "Analytics" }, { icon: FileText, label: "Reports" }, { icon: Settings, label: "Settings" },
+  { icon: LayoutGrid, label: "Overview", to: "/operator", exact: true },
+  { icon: Factory, label: "My Solar Plants", to: "/operator" },
+  { icon: Activity, label: "Plant Monitoring", to: "/operator" },
+  { icon: LineChart, label: "Energy Forecast", to: "/operator" },
+  { icon: ScanSearch, label: "Fault Detection", to: "/operator" },
+  { icon: Wind, label: "Soiling Analysis", to: "/operator" },
+  { icon: Wrench, label: "Maintenance Center", to: "/operator" },
+  { icon: BarChart3, label: "Analytics", to: "/operator" },
+  { icon: FileText, label: "Reports", to: "/operator" },
+  { icon: Settings, label: "Settings", to: "/operator" },
 ];
 
 const PLANTS = [

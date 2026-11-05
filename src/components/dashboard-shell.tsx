@@ -54,14 +54,14 @@ export function DashboardLayout({ nav, roleLabel, children }: { nav: NavItem[]; 
   const [open, setOpen] = useState(false);
   return (
     <div className="flex min-h-screen">
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r bg-card px-4 py-6 lg:flex">
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r bg-card px-4 py-6 lg:flex">
         <div className="px-2"><Logo /></div>
         <p className="mt-6 px-3 eyebrow">{roleLabel}</p>
         <div className="mt-2 flex-1 overflow-y-auto"><NavLinks nav={nav} /></div>
-        <SignOut />
+        <div className="mt-auto pt-4 border-t"><SignOut /></div>
       </aside>
-      <div className="min-w-0 flex-1">
-        <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b bg-background/90 px-4 backdrop-blur lg:hidden">
+      <div className="min-w-0 flex-1 flex flex-col">
+        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b bg-background/90 px-4 backdrop-blur lg:hidden">
           <Logo />
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
@@ -72,17 +72,45 @@ export function DashboardLayout({ nav, roleLabel, children }: { nav: NavItem[]; 
               <Logo />
               <p className="mt-4 px-3 eyebrow">{roleLabel}</p>
               <div className="flex-1 overflow-y-auto"><NavLinks nav={nav} onNavigate={() => setOpen(false)} /></div>
-              <SignOut />
+              <div className="mt-auto pt-4 border-t"><SignOut /></div>
             </SheetContent>
           </Sheet>
         </header>
-        {children}
+        <div className="flex-1 overflow-y-auto">
+          {children}
+        </div>
       </div>
     </div>
   );
 }
 
-export function Page({ title, subtitle, badge = "Demo data", actions, children }: { title: string; subtitle?: string; badge?: string | null; actions?: ReactNode; children: ReactNode }) {
+export function DashboardShell({
+  nav,
+  active,
+  title,
+  subtitle,
+  badge,
+  actions,
+  children,
+}: {
+  nav: NavItem[];
+  active?: string;
+  title: string;
+  subtitle?: string;
+  badge?: string | null;
+  actions?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <DashboardLayout nav={nav} roleLabel="Dashboard">
+      <Page title={title} subtitle={subtitle} badge={badge} actions={actions}>
+        {children}
+      </Page>
+    </DashboardLayout>
+  );
+}
+
+export function Page({ title, subtitle, badge = "Demo data", actions, children }: { title: string; subtitle?: string | null | undefined; badge?: string | null | undefined; actions?: ReactNode; children: ReactNode }) {
   return (
     <main className="px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
