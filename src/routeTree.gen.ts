@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedHomeownerRouteImport } from './routes/_authenticated/homeowner'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedOperatorRouteImport } from './routes/_authenticated/operator'
+import { Route as AuthenticatedReportsPrintRouteImport } from './routes/_authenticated/reports.print'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -51,6 +52,12 @@ const AuthenticatedOperatorRoute = AuthenticatedOperatorRouteImport.update({
   path: '/operator',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReportsPrintRoute =
+  AuthenticatedReportsPrintRouteImport.update({
+    id: '/reports/print',
+    path: '/reports/print',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/homeowner': typeof AuthenticatedHomeownerRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/operator': typeof AuthenticatedOperatorRoute
+  '/reports/print': typeof AuthenticatedReportsPrintRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -67,6 +75,7 @@ export interface FileRoutesByTo {
   '/homeowner': typeof AuthenticatedHomeownerRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/operator': typeof AuthenticatedOperatorRoute
+  '/reports/print': typeof AuthenticatedReportsPrintRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,13 +86,27 @@ export interface FileRoutesById {
   '/_authenticated/homeowner': typeof AuthenticatedHomeownerRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/operator': typeof AuthenticatedOperatorRoute
+  '/_authenticated/reports/print': typeof AuthenticatedReportsPrintRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/advisor' | '/auth' | '/homeowner' | '/onboarding' | '/operator'
+    | '/'
+    | '/advisor'
+    | '/auth'
+    | '/homeowner'
+    | '/onboarding'
+    | '/operator'
+    | '/reports/print'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/advisor' | '/auth' | '/homeowner' | '/onboarding' | '/operator'
+  to:
+    | '/'
+    | '/advisor'
+    | '/auth'
+    | '/homeowner'
+    | '/onboarding'
+    | '/operator'
+    | '/reports/print'
   id:
     | '__root__'
     | '/'
@@ -93,6 +116,7 @@ export interface FileRouteTypes {
     | '/_authenticated/homeowner'
     | '/_authenticated/onboarding'
     | '/_authenticated/operator'
+    | '/_authenticated/reports/print'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -153,6 +177,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOperatorRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/reports/print': {
+      id: '/_authenticated/reports/print'
+      path: '/reports/print'
+      fullPath: '/reports/print'
+      preLoaderRoute: typeof AuthenticatedReportsPrintRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -160,12 +191,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHomeownerRoute: typeof AuthenticatedHomeownerRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOperatorRoute: typeof AuthenticatedOperatorRoute
+  AuthenticatedReportsPrintRoute: typeof AuthenticatedReportsPrintRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHomeownerRoute: AuthenticatedHomeownerRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOperatorRoute: AuthenticatedOperatorRoute,
+  AuthenticatedReportsPrintRoute: AuthenticatedReportsPrintRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

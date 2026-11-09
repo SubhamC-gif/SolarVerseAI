@@ -9,19 +9,25 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
-export type NavItem = { icon: LucideIcon; label: string; to: string; exact?: boolean };
+export type NavItem = { icon: LucideIcon; label: string; to: string; exact?: boolean; onClick?: (e: React.MouseEvent) => void; active?: boolean };
 
 function NavLinks({ nav, onNavigate }: { nav: NavItem[]; onNavigate?: () => void }) {
   return (
     <nav className="space-y-0.5">
-      {nav.map(({ icon: I, label, to, exact }) => (
+      {nav.map(({ icon: I, label, to, exact, onClick, active }) => (
         <Link
-          key={to}
+          key={label}
           to={to}
-          onClick={onNavigate}
+          onClick={(e) => {
+            onClick?.(e);
+            onNavigate?.();
+          }}
           activeOptions={{ exact: !!exact }}
-          className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-forest"
-          activeProps={{ className: "!bg-forest !text-forest-foreground" }}
+          className={cn(
+            "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors hover:bg-muted hover:text-forest",
+            active ? "bg-forest text-forest-foreground" : "text-muted-foreground"
+          )}
+          activeProps={active === undefined ? { className: "!bg-forest !text-forest-foreground" } : undefined}
         >
           <I className="h-4 w-4 shrink-0" /> <span className="truncate">{label}</span>
         </Link>

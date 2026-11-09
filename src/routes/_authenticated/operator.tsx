@@ -7,6 +7,7 @@ import { DashboardShell, Panel } from "@/components/dashboard-shell";
 import { Metric } from "@/components/brand";
 import { fmt } from "@/lib/solar";
 import { cn } from "@/lib/utils";
+import { FaultDetectionUI } from "@/components/fault-detection-ui";
 
 export const Route = createFileRoute("/_authenticated/operator")({
   beforeLoad: () => requireRole("operator"),
@@ -50,7 +51,18 @@ const ALERTS = [
 ];
 
 function Operator() {
+  const [view, setView] = useState("Overview");
   const [pid, setPid] = useState(PLANTS[0]!.id);
+
+  const nav = NAV.map(n => ({
+    ...n,
+    active: n.label === view,
+    onClick: (e: React.MouseEvent) => {
+      e.preventDefault();
+      setView(n.label);
+    }
+  }));
+
   const plant = PLANTS.find((p) => p.id === pid) ?? PLANTS[0]!;
   const day = Array.from({ length: 15 }, (_, i) => {
     const h = i + 5;
@@ -62,75 +74,93 @@ function Operator() {
   const month = Array.from({ length: 30 }, (_, i) => ({ d: i + 1, mwh: +(plant.mw * (4.6 + Math.sin(i / 3) * 0.5 - (i % 9 === 0 ? 1.2 : 0))).toFixed(1) }));
 
   return (
-    <DashboardShell nav={NAV} active="Overview" title="Plant operations" subtitle="Generation, health and maintenance across your portfolio">
-      <div className="mb-6 flex flex-wrap gap-2">
-        {PLANTS.map((p) => (
-          <button key={p.id} onClick={() => setPid(p.id)} className={cn("rounded-md border px-3 py-1.5 text-sm", p.id === pid ? "border-forest bg-forest text-forest-foreground" : "bg-card hover:border-primary")}>
-            {p.name} <span className="opacity-60 tnum">· {p.mw} MW</span>
-          </button>
-        ))}
-      </div>
-      <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-6">
-        <Metric label="Installed" value={fmt(plant.mw, 1)} unit="MW" />
-        <Metric label="Today" value={fmt(today, 1)} unit="MWh" />
-        <Metric label="This month" value={fmt(month.reduce((a, d) => a + d.mwh, 0))} unit="MWh" />
-        <Metric label="Performance ratio" value={fmt(plant.pr, 1)} unit="%" />
-        <Metric label="Active alerts" value={String(ALERTS.filter((a) => a.p === plant.name).length)} />
-        <Metric label="Soiling loss" value={fmt(plant.soil, 1)} unit="%" />
-      </div>
-      <div className="mt-6 grid gap-6 lg:grid-cols-3">
-        <Panel title="Actual vs. expected generation (MW) · irradiance (W/m²)" className="lg:col-span-2">
-          <div className="h-72">
-            <ResponsiveContainer>
-              <ComposedChart data={day}>
-                <CartesianGrid vertical={false} stroke="var(--border)" />
-                <XAxis dataKey="hour" tickLine={false} axisLine={false} fontSize={12} />
-                <YAxis yAxisId="l" tickLine={false} axisLine={false} fontSize={12} />
-                <YAxis yAxisId="r" orientation="right" tickLine={false} axisLine={false} fontSize={12} />
-                <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }} />
-                <Bar yAxisId="r" dataKey="irradiance" fill="var(--chart-2)" fillOpacity={0.35} radius={[3, 3, 0, 0]} />
-                <Line yAxisId="l" dataKey="expected" stroke="var(--chart-3)" strokeDasharray="4 4" dot={false} />
-                <Line yAxisId="l" dataKey="actual" stroke="var(--chart-1)" strokeWidth={2.5} dot={false} />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
-        </Panel>
-        <Panel title="Inspection alerts">
-          <ul className="space-y-3">
-            {ALERTS.map((a) => (
-              <li key={a.t} className={cn("flex gap-3 rounded-md border p-3 text-sm", a.p !== plant.name && "opacity-50")}>
-                <AlertTriangle className={cn("mt-0.5 h-4 w-4 shrink-0", a.c)} />
-                <div><p className="text-forest">{a.t}</p><p className="text-xs text-muted-foreground">{a.sev} · {a.p}</p></div>
-              </li>
+    <DashboardShell 
+      nav={nav} 
+      active={view} 
+      title={view === "Overview" ? "Plant operations" : view} 
+      subtitle={view === "Overview" ? "Generation, health and maintenance across your portfolio" : "AI-driven diagnostics and intelligence"}
+    >
+      {view === "Overview" ? (
+        <>
+          <div className="mb-6 flex flex-wrap gap-2">
+            {PLANTS.map((p) => (
+              <button key={p.id} onClick={() => setPid(p.id)} className={cn("rounded-md border px-3 py-1.5 text-sm", p.id === pid ? "border-forest bg-forest text-forest-foreground" : "bg-card hover:border-primary")}>
+                {p.name} <span className="opacity-60 tnum">· {p.mw} MW</span>
+              </button>
             ))}
-          </ul>
-        </Panel>
-        <Panel title="Daily production this month (MWh)" className="lg:col-span-2">
-          <div className="h-56">
-            <ResponsiveContainer>
-              <AreaChart data={month}>
-                <CartesianGrid vertical={false} stroke="var(--border)" />
-                <XAxis dataKey="d" tickLine={false} axisLine={false} fontSize={12} />
-                <YAxis tickLine={false} axisLine={false} fontSize={12} />
-                <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }} />
-                <Area dataKey="mwh" stroke="var(--chart-1)" fill="var(--chart-1)" fillOpacity={0.12} strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-6">
+            <Metric label="Installed" value={fmt(plant.mw, 1)} unit="MW" />
+            <Metric label="Today" value={fmt(today, 1)} unit="MWh" />
+            <Metric label="This month" value={fmt(month.reduce((a, d) => a + d.mwh, 0))} unit="MWh" />
+            <Metric label="Performance ratio" value={fmt(plant.pr, 1)} unit="%" />
+            <Metric label="Active alerts" value={String(ALERTS.filter((a) => a.p === plant.name).length)} />
+            <Metric label="Soiling loss" value={fmt(plant.soil, 1)} unit="%" />
+          </div>
+          <div className="mt-6 grid gap-6 lg:grid-cols-3">
+            <Panel title="Actual vs. expected generation (MW) · irradiance (W/m²)" className="lg:col-span-2">
+              <div className="h-72">
+                <ResponsiveContainer>
+                  <ComposedChart data={day}>
+                    <CartesianGrid vertical={false} stroke="var(--border)" />
+                    <XAxis dataKey="hour" tickLine={false} axisLine={false} fontSize={12} />
+                    <YAxis yAxisId="l" tickLine={false} axisLine={false} fontSize={12} />
+                    <YAxis yAxisId="r" orientation="right" tickLine={false} axisLine={false} fontSize={12} />
+                    <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }} />
+                    <Bar yAxisId="r" dataKey="irradiance" fill="var(--chart-2)" fillOpacity={0.35} radius={[3, 3, 0, 0]} />
+                    <Line yAxisId="l" dataKey="expected" stroke="var(--chart-3)" strokeDasharray="4 4" dot={false} />
+                    <Line yAxisId="l" dataKey="actual" stroke="var(--chart-1)" strokeWidth={2.5} dot={false} />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+            </Panel>
+            <Panel title="Inspection alerts">
+              <ul className="space-y-3">
+                {ALERTS.map((a) => (
+                  <li key={a.t} className={cn("flex gap-3 rounded-md border p-3 text-sm", a.p !== plant.name && "opacity-50")}>
+                    <AlertTriangle className={cn("mt-0.5 h-4 w-4 shrink-0", a.c)} />
+                    <div><p className="text-forest">{a.t}</p><p className="text-xs text-muted-foreground">{a.sev} · {a.p}</p></div>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+            <Panel title="Daily production this month (MWh)" className="lg:col-span-2">
+              <div className="h-56">
+                <ResponsiveContainer>
+                  <AreaChart data={month}>
+                    <CartesianGrid vertical={false} stroke="var(--border)" />
+                    <XAxis dataKey="d" tickLine={false} axisLine={false} fontSize={12} />
+                    <YAxis tickLine={false} axisLine={false} fontSize={12} />
+                    <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }} />
+                    <Area dataKey="mwh" stroke="var(--chart-1)" fill="var(--chart-1)" fillOpacity={0.12} strokeWidth={2} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </Panel>
+            <Panel title="Plant-wise performance ratio (%)">
+              <div className="h-56">
+                <ResponsiveContainer>
+                  <BarChart data={PLANTS} layout="vertical" margin={{ left: 10 }}>
+                    <XAxis type="number" domain={[70, 90]} hide />
+                    <YAxis type="category" dataKey="name" width={110} tickLine={false} axisLine={false} fontSize={11} />
+                    <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }} />
+                    <Bar dataKey="pr" fill="var(--chart-3)" radius={[0, 3, 3, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Panel>
+          </div>
+        </>
+      ) : view === "Fault Detection" ? (
+        <FaultDetectionUI />
+      ) : (
+        <Panel title={view}>
+          <div className="flex h-64 flex-col items-center justify-center text-center text-muted-foreground">
+            <Activity className="h-12 w-12 opacity-20" />
+            <p className="mt-4 italic">This section is currently under development.</p>
           </div>
         </Panel>
-        <Panel title="Plant-wise performance ratio (%)">
-          <div className="h-56">
-            <ResponsiveContainer>
-              <BarChart data={PLANTS} layout="vertical" margin={{ left: 10 }}>
-                <XAxis type="number" domain={[70, 90]} hide />
-                <YAxis type="category" dataKey="name" width={110} tickLine={false} axisLine={false} fontSize={11} />
-                <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }} />
-                <Bar dataKey="pr" fill="var(--chart-3)" radius={[0, 3, 3, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Panel>
-      </div>
+      )}
     </DashboardShell>
   );
 }

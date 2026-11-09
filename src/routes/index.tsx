@@ -110,12 +110,6 @@ function Landing() {
             </div>
           ))}
         </div>
-        <div className="mt-20 flex items-center gap-3"><p className="eyebrow">Platform at a glance</p><DemoBadge label="Illustrative demo statistics" /></div>
-        <div className="mt-6 grid gap-8 md:grid-cols-4">
-          {[["1.2 GWh", "Energy generated"], ["48 MW", "Capacity analysed"], ["860 t", "CO₂ avoided (est.)"], ["2,400+", "Installations monitored"]].map(([v, l]) => (
-            <div key={l}><p className="font-display text-4xl font-light text-forest tnum">{v}</p><p className="mt-1 text-sm text-muted-foreground">{l}</p></div>
-          ))}
-        </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-6 pb-24">
