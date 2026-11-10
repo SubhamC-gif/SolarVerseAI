@@ -1,91 +1,283 @@
+
+import type * as OrtTypes from "onnxruntime-web";
+
 type Ort = typeof import("onnxruntime-web");
-type Session = import("onnxruntime-web").InferenceSession;
+type Session = OrtTypes.InferenceSession;
 
 const MODEL_URL = "/models/panel-fault.onnx";
 const LABELS_URL = "/models/labels.json";
+
 const SIZE = 224;
+
 const MEAN = [0.485, 0.456, 0.406];
 const STD = [0.229, 0.224, 0.225];
 
-export type Prediction = { label: string; score: number };
+// Must match the installed ONNX Runtime version.
+const WASM_PATH =
+  "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.31.1/dist/";
 
-export class ModelNotFoundError extends Error {}
+export type Prediction = {
+  label: string;
+  score: number;
+};
 
-type Loaded = { ort: Ort; session: Session; labels: string[] };
-let loading: Promise<Loaded> | null = null;
+export class ModelNotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ModelNotFoundError";
+  }
+}
 
-async function load(): Promise<Loaded> {
-  // browser-e-i load hobe (SSR-e window nei, tai dynamic import)
+type LoadedModel = {
+  ort: Ort;
+  session: Session;
+  labels: string[];
+};
+
+let modelPromise: Promise<LoadedModel> | null = null;
+
+async function loadModel(): Promise<LoadedModel> {
+  console.log("[SolarVerse] Loading ONNX Runtime...");
+
   const ort = await import("onnxruntime-web");
-  ort.env.wasm.wasmPaths = "/ort/";
+
+  // Load matching ONNX Runtime WASM files from CDN.
+  ort.env.wasm.wasmPaths = WASM_PATH;
   ort.env.wasm.numThreads = 1;
 
-  const [modelRes, labelsRes] = await Promise.all([fetch(MODEL_URL), fetch(LABELS_URL)]);
-  if (!modelRes.ok || !labelsRes.ok) throw new ModelNotFoundError("Model not found");
+  console.log("[SolarVerse] Loading model and labels...");
 
-  let labels: unknown;
-  try {
-    labels = await labelsRes.json();
-  } catch {
-    throw new ModelNotFoundError("labels.json not found");
+  const [modelResponse, labelsResponse] = await Promise.all([
+    fetch(MODEL_URL),
+    fetch(LABELS_URL),
+  ]);
+
+  if (!modelResponse.ok) {
+    throw new ModelNotFoundError(
+      `Model not found at ${MODEL_URL}. HTTP ${modelResponse.status}`
+    );
   }
-  if (!Array.isArray(labels)) throw new ModelNotFoundError("labels.json invalid");
 
-  const session = await ort.InferenceSession.create(await modelRes.arrayBuffer(), {
+  if (!labelsResponse.ok) {
+    throw new ModelNotFoundError(
+      `Labels not found at ${LABELS_URL}. HTTP ${labelsResponse.status}`
+    );
+  }
+
+  const labelsData: unknown = await labelsResponse.json();
+
+  if (
+    !Array.isArray(labelsData) ||
+    !labelsData.every((label) => typeof label === "string")
+  ) {
+    throw new ModelNotFoundError(
+      "Invalid labels.json. Expected an array of strings."
+    );
+  }
+
+  const labels = labelsData as string[];
+
+  if (labels.length === 0) {
+    throw new ModelNotFoundError("labels.json is empty.");
+  }
+
+  const modelBuffer = await modelResponse.arrayBuffer();
+
+  if (modelBuffer.byteLength === 0) {
+    throw new ModelNotFoundError("The ONNX model file is empty.");
+  }
+
+  console.log("[SolarVerse] Creating inference session...");
+
+  const session = await ort.InferenceSession.create(modelBuffer, {
     executionProviders: ["wasm"],
   });
-  return { ort, session, labels: labels.map(String) };
-}
 
-async function toTensorData(file: File): Promise<Float32Array> {
-  const bitmap = await createImageBitmap(file);
-  const canvas = document.createElement("canvas");
-  canvas.width = SIZE;
-  canvas.height = SIZE;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas not supported");
-  ctx.drawImage(bitmap, 0, 0, SIZE, SIZE);
-  bitmap.close();
-
-  const { data } = ctx.getImageData(0, 0, SIZE, SIZE);
-  const plane = SIZE * SIZE;
-  const out = new Float32Array(3 * plane);
-  for (let i = 0; i < plane; i++) {
-    for (let c = 0; c < 3; c++) {
-      const v = (data[i * 4 + c] ?? 0) / 255;
-      out[c * plane + i] = (v - (MEAN[c] ?? 0)) / (STD[c] ?? 1);
-    }
+  if (session.inputNames.length !== 1) {
+    throw new Error(
+      `Expected one model input, found ${session.inputNames.length}.`
+    );
   }
-  return out;
+
+  if (session.outputNames.length !== 1) {
+    throw new Error(
+      `Expected one model output, found ${session.outputNames.length}.`
+    );
+  }
+
+  console.log("[SolarVerse] Model loaded successfully.");
+  console.log("[SolarVerse] Input:", session.inputNames);
+  console.log("[SolarVerse] Output:", session.outputNames);
+  console.log("[SolarVerse] Labels:", labels);
+
+  return {
+    ort,
+    session,
+    labels,
+  };
 }
 
-function softmax(logits: Float32Array): number[] {
-  const max = Math.max(...logits);
-  const exps = Array.from(logits, (x) => Math.exp(x - max));
-  const sum = exps.reduce((a, b) => a + b, 0);
-  return exps.map((x) => x / sum);
-}
-
-export async function classifyImage(file: File, topK = 3): Promise<Prediction[]> {
-  if (!loading) {
-    loading = load().catch((err) => {
-      loading = null; // pore abar try kora jabe
-      throw err;
+async function getModel(): Promise<LoadedModel> {
+  if (!modelPromise) {
+    modelPromise = loadModel().catch((error: unknown) => {
+      modelPromise = null;
+      console.error("[SolarVerse] Model loading failed:", error);
+      throw error;
     });
   }
-  const { ort, session, labels } = await loading;
 
-  const inputName = session.inputNames[0];
-  const outputName = session.outputNames[0];
-  if (!inputName || !outputName) throw new Error("Invalid model");
+  return modelPromise;
+}
 
-  const tensor = new ort.Tensor("float32", await toTensorData(file), [1, 3, SIZE, SIZE]);
-  const result = await session.run({ [inputName]: tensor });
-  const logits = result[outputName]?.data as Float32Array | undefined;
-  if (!logits) throw new Error("No output from model");
+// Convert uploaded image into a normalized RGB tensor.
+async function preprocessImage(file: File): Promise<Float32Array> {
+  if (!file.type.startsWith("image/")) {
+    throw new Error("The selected file is not a valid image.");
+  }
 
-  return softmax(logits)
-    .map((score, i) => ({ label: labels[i] ?? `class_${i}`, score }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, topK);
+  let bitmap: ImageBitmap;
+
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    throw new Error("Could not read the uploaded image.");
+  }
+
+  try {
+    const canvas = document.createElement("canvas");
+
+    canvas.width = SIZE;
+    canvas.height = SIZE;
+
+    const context = canvas.getContext("2d", {
+      willReadFrequently: true,
+    });
+
+    if (!context) {
+      throw new Error("Could not initialize image canvas.");
+    }
+
+    context.drawImage(bitmap, 0, 0, SIZE, SIZE);
+
+    const imageData = context.getImageData(
+      0,
+      0,
+      SIZE,
+      SIZE
+    );
+
+    const pixels = imageData.data;
+
+    const planeSize = SIZE * SIZE;
+
+    // NCHW format: [1, 3, 224, 224].
+    const tensorData = new Float32Array(3 * planeSize);
+
+    for (let i = 0; i < planeSize; i++) {
+      for (let channel = 0; channel < 3; channel++) {
+        const pixelValue =
+          (pixels[i * 4 + channel] ?? 0) / 255;
+
+        tensorData[channel * planeSize + i] =
+          (pixelValue - MEAN[channel]!) / STD[channel]!;
+      }
+    }
+
+    return tensorData;
+  } finally {
+    bitmap.close();
+  }
+}
+
+// Convert raw model logits into probability scores.
+function softmax(logits: Float32Array): number[] {
+  if (logits.length === 0) {
+    throw new Error("The model returned an empty prediction.");
+  }
+
+  const maxValue = Math.max(...logits);
+
+  const exponentials = Array.from(
+    logits,
+    (value) => Math.exp(value - maxValue)
+  );
+
+  const total = exponentials.reduce(
+    (sum, value) => sum + value,
+    0
+  );
+
+  if (!Number.isFinite(total) || total <= 0) {
+    throw new Error("The model returned invalid prediction values.");
+  }
+
+  return exponentials.map((value) => value / total);
+}
+
+// Main image classification function.
+export async function classifyImage(
+  file: File,
+  topK = 3
+): Promise<Prediction[]> {
+  try {
+    const { ort, session, labels } = await getModel();
+
+    console.log("[SolarVerse] Processing:", file.name);
+
+    const inputName = session.inputNames[0];
+    const outputName = session.outputNames[0];
+
+    if (!inputName || !outputName) {
+      throw new Error("Model input or output name is missing.");
+    }
+
+    const inputData = await preprocessImage(file);
+
+    const inputTensor = new ort.Tensor(
+      "float32",
+      inputData,
+      [1, 3, SIZE, SIZE]
+    );
+
+    console.log("[SolarVerse] Running inference...");
+
+    const results = await session.run({
+      [inputName]: inputTensor,
+    });
+
+    const output = results[outputName];
+
+    if (!output || !(output.data instanceof Float32Array)) {
+      throw new Error("Invalid ONNX model output.");
+    }
+
+    const logits = output.data;
+
+    if (logits.length !== labels.length) {
+      throw new Error(
+        `Prediction count (${logits.length}) does not match labels (${labels.length}).`
+      );
+    }
+
+    const probabilities = softmax(logits);
+
+    const predictions: Prediction[] = probabilities
+      .map((score, index) => ({
+        label: labels[index]!,
+        score,
+      }))
+      .sort((a, b) => b.score - a.score);
+
+    console.log("[SolarVerse] Predictions:", predictions);
+
+    const safeTopK = Math.max(
+      1,
+      Math.min(Math.floor(topK), predictions.length)
+    );
+
+    return predictions.slice(0, safeTopK);
+  } catch (error) {
+    console.error("[SolarVerse] Image analysis failed:", error);
+    throw error;
+  }
 }
