@@ -8,6 +8,7 @@ import { Panel } from "@/components/dashboard-shell";
 import { Metric } from "@/components/brand";
 import { fmt } from "@/lib/solar";
 import { cn } from "@/lib/utils";
+import { ImageInspection } from "@/components/plant/image-inspection";
 
 type InverterStatus = "ok" | "warning" | "off";
 type Severity = "high" | "medium" | "low";
@@ -329,6 +330,8 @@ export function FaultDetectionUI() {
           </Panel>
         </div>
       </div>
+
+      <ImageInspection />
     </div>
   );
 }
