@@ -66,7 +66,7 @@ function toBase64(buf: ArrayBuffer) {
 
 export const analyzeInspection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ inspectionId: z.string().uuid() }).parse(d))
+  .validator(z.object({ inspectionId: z.string().uuid() }))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
     const { data: insp, error } = await supabase.from("inspections").select("*").eq("id", data.inspectionId).single();

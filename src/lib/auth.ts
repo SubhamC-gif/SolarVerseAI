@@ -24,3 +24,12 @@ export async function currentUserId() {
   if (!data.user) throw new Error("Not signed in");
   return data.user.id;
 }
+
+/** Switch the signed-in user's role (homeowner / operator) and refresh. */
+export async function setMyRole(role: AppRole) {
+  const id = await currentUserId();
+  const { error } = await supabase
+    .from("user_roles")
+    .upsert({ user_id: id, role }, { onConflict: "user_id" });
+  if (error) throw error;
+}

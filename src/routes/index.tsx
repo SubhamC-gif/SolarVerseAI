@@ -19,12 +19,12 @@ export const Route = createFileRoute("/")({
 });
 
 const CAPS = [
-  { icon: ScanSearch, t: "AI Solar Fault Detection", d: "Flag cracks, hotspots and cell abnormalities from inspection imagery." },
-  { icon: LineChart, t: "Intelligent Energy Forecasting", d: "Typical-year estimates and short-term weather-aware outlooks." },
-  { icon: Home, t: "Smart Rooftop Planning", d: "Right-size capacity to your roof, usage and budget." },
-  { icon: Wind, t: "Dust & Soiling Analysis", d: "Quantify soiling losses and time cleaning cycles." },
-  { icon: IndianRupee, t: "Financial & ROI Intelligence", d: "Payback, savings and 20-year projections in ₹." },
-  { icon: Wrench, t: "Predictive Maintenance", d: "Prioritise inspections before output drops." },
+  { icon: ScanSearch, t: "AI Solar Fault Detection", d: "Flag cracks, hotspots and cell abnormalities from inspection imagery.", to: "/operator" },
+  { icon: LineChart, t: "Intelligent Energy Forecasting", d: "Typical-year estimates and short-term weather-aware outlooks.", to: "/operator" },
+  { icon: Home, t: "Smart Rooftop Planning", d: "Right-size capacity to your roof, usage and budget.", to: "/homeowner" },
+  { icon: Wind, t: "Dust & Soiling Analysis", d: "Quantify soiling losses and time cleaning cycles.", to: "/operator" },
+  { icon: IndianRupee, t: "Financial & ROI Intelligence", d: "Payback, savings and 20-year projections in ₹.", to: "/homeowner" },
+  { icon: Wrench, t: "Predictive Maintenance", d: "Prioritise inspections before output drops.", to: "/operator" },
 ];
 
 function Landing() {
@@ -89,12 +89,12 @@ function Landing() {
           <p className="eyebrow">Platform capabilities</p>
           <h2 className="mt-3 max-w-xl text-4xl font-light text-forest">One intelligence layer for the full solar lifecycle.</h2>
           <div className="mt-12 grid gap-px overflow-hidden rounded-xl border bg-border md:grid-cols-3">
-            {CAPS.map(({ icon: I, t, d }) => (
-              <div key={t} className="group bg-card p-8 transition-colors hover:bg-cream">
+            {CAPS.map(({ icon: I, t, d, to }) => (
+              <Link key={t} to={to} className="group bg-card p-8 transition-colors hover:bg-cream">
                 <I className="h-5 w-5 text-primary transition-colors group-hover:text-forest" />
                 <h3 className="mt-6 text-lg font-medium text-forest">{t}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">{d}</p>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -108,12 +108,6 @@ function Landing() {
               <p className="font-display text-sm text-primary tnum">0{i + 1}</p>
               <p className="mt-2 text-lg text-forest">{s}</p>
             </div>
-          ))}
-        </div>
-        <div className="mt-20 flex items-center gap-3"><p className="eyebrow">Platform at a glance</p><DemoBadge label="Illustrative demo statistics" /></div>
-        <div className="mt-6 grid gap-8 md:grid-cols-4">
-          {[["1.2 GWh", "Energy generated"], ["48 MW", "Capacity analysed"], ["860 t", "CO₂ avoided (est.)"], ["2,400+", "Installations monitored"]].map(([v, l]) => (
-            <div key={l}><p className="font-display text-4xl font-light text-forest tnum">{v}</p><p className="mt-1 text-sm text-muted-foreground">{l}</p></div>
           ))}
         </div>
       </section>

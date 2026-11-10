@@ -94,3 +94,5 @@ export const inr = (n: number) =>
   "₹" + Math.round(n).toLocaleString("en-IN");
 export const fmt = (n: number, d = 0) =>
   n.toLocaleString("en-IN", { maximumFractionDigits: d, minimumFractionDigits: d });
+export const fmtDate = (iso: string) =>
+  new Date(iso).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
