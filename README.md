@@ -1,24 +1,53 @@
-# Screenshot Match
+# SolarVerseAI
 
-Implement exactly the screenshot and nothing else
+Intelligent solar platform for homes and plants. Plan rooftop solar,
+estimate savings, and monitor solar plants in one place.
 
-This project was built with [Lovable](https://lovable.dev).
+Built by [Subham Chakraborty].
 
-## Build with Lovable
+## Features
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/7cab3957-3283-4284-bf69-c10d09965fea).
+**For homeowners**
+- Solar potential and system planner
+- Savings and ROI calculator
+- Battery planner
+- Energy forecast and environmental impact
+- Saved reports
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+**For plant operators**
+- Plant monitoring
+- Fault detection
+- Generation forecasting
+- Soiling analytics
+- Predictive maintenance
 
-## Development
+> Note: some modules currently use demo / sample data.
+> Forecasts and health scores are estimates.
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Tech stack
+
+- TanStack Start, React 19, TypeScript
+- Tailwind CSS 4, shadcn/ui, Recharts
+- Supabase (database and authentication)
+
+## Getting started
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+git clone https://github.com/SubhamC-gif/screenshot-match.git
+cd screenshot-match
+bun install
+bun run dev
+```
+
+Create a `.env` file in the project root with your Supabase keys.
+Never commit this file.
+
+## Scripts
+
+```sh
+bun run dev     # start the dev server
+npm run dev     # start the dev server
+bun run build   # production build
+bun run lint    # lint the code
+bun run test    # run tests
 ```
