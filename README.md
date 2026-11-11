@@ -110,7 +110,7 @@ bun run test
 1. **Subham Chakraborty** – [GitHub](https://github.com/SubhamC-gif)
 2. **Aranya Shaikh** – [GitHub](https://github.com/aranyashaikh618-hub)
 3. **Sumit Kumar Dubey** – [GitHub](https://github.com/sumitdubey642-destroyer)
-4. **Aditya Kumar** – [GitHub](https://github.com/Aditya-0706)
+4. **Aditya Kumar Jha** – [GitHub](https://github.com/Aditya-0706)
 5. **Soham Mallick** – [GitHub](https://github.com/Soham5-Git)
 6. **Yasin Ahmed** – [GitHub](https://github.com/codeyasinya)
 
