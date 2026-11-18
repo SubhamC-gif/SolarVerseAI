@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { SiteNav, SiteFooter } from "@/components/brand";
 import { BreakoutStage } from "@/components/landing/breakout-stage";
 import { Reveal } from "@/components/landing/reveal";
+import { SolutionCards } from "@/components/landing/solution-cards";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -73,21 +74,7 @@ function Landing() {
         <Reveal>
           <p className="eyebrow">Two ways to use SolarVerse</p>
         </Reveal>
-        <div className="mt-8 grid gap-6 md:grid-cols-2">
-          {[
-            { k: "Homeowner Intelligence", h: "Make your rooftop work smarter.", items: ["Solar capacity recommendation", "Annual production estimate", "Installation cost estimation", "Savings calculator", "Battery configuration"], cta: "Explore Home Solar", to: "/homeowner" as const, dark: false },
-            { k: "Solar Plant Intelligence", h: "Manage every panel. Understand every watt.", items: ["Plant monitoring", "Fault detection", "Generation forecasting", "Soiling analytics", "Predictive maintenance"], cta: "Explore Plant Management", to: "/operator" as const, dark: true },
-          ].map((c, i) => (
-            <Reveal key={c.k} delay={i * 120} className={c.dark ? "rounded-xl bg-inverse p-10 text-inverse-foreground" : "rounded-xl border bg-card p-10 shadow-soft"}>
-              <p className={c.dark ? "eyebrow text-solar" : "eyebrow text-primary"}>{c.k}</p>
-              <h2 className="mt-4 text-3xl font-light">{c.h}</h2>
-              <ul className="mt-6 space-y-2.5 text-sm opacity-85">
-                {c.items.map((i) => <li key={i} className="flex items-center gap-3"><span className="h-1 w-4 rounded bg-solar" />{i}</li>)}
-              </ul>
-              <Button asChild variant={c.dark ? "secondary" : "default"} className="mt-8"><Link to={c.to}>{c.cta} <ArrowRight /></Link></Button>
-            </Reveal>
-          ))}
-        </div>
+        <SolutionCards />
       </section>
 
       <section className="border-y bg-card">
