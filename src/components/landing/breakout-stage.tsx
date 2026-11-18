@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ModuleView, type ModuleKind } from "./module-views";
 import { Reveal } from "./reveal";
+import { useCinematicMode } from "./use-cinematic-mode";
 
 type Pose = { x: number; y: number; z: number; rx: number; ry: number; s: number };
 type Module = {
@@ -92,24 +93,10 @@ const BEATS = [
   },
 ];
 
-const CINEMATIC_QUERY = "(min-width: 1024px) and (prefers-reduced-motion: no-preference)";
-
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const beatIndex = (p: number) => (p < 0.3 ? 0 : p < 0.5 ? 1 : p < 0.76 ? 2 : 3);
-
-function useCinematicMode() {
-  const [cinematic, setCinematic] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia(CINEMATIC_QUERY);
-    const sync = () => setCinematic(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, []);
-  return cinematic;
-}
 
 export function BreakoutStage() {
   const cinematic = useCinematicMode();
