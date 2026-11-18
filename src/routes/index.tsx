@@ -4,7 +4,6 @@ import hero from "@/assets/hero-solar.jpg";
 import { Button } from "@/components/ui/button";
 import { SiteNav, SiteFooter } from "@/components/brand";
 import { BreakoutStage } from "@/components/landing/breakout-stage";
-import { FrameScroll } from "@/components/landing/frame-scroll";
 import { Reveal } from "@/components/landing/reveal";
 
 export const Route = createFileRoute("/")({
@@ -69,7 +68,6 @@ function Landing() {
       </section>
 
       <BreakoutStage />
-      <FrameScroll />
 
       <section className="mx-auto max-w-7xl px-6 py-24">
         <Reveal>
