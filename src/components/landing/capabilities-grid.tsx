@@ -52,8 +52,8 @@ const CAPS: Cap[] = [
 ];
 
 const ORBITS = [
-  { rx: 340, ry: 170, omega: 0.11 },
-  { rx: 190, ry: 98, omega: -0.17 },
+  { rx: 420, ry: 215, omega: 0.11 },
+  { rx: 250, ry: 130, omega: -0.17 },
 ];
 
 const orbitOf = (i: number) => ORBITS[i % 2]!;
@@ -61,7 +61,7 @@ const phaseOf = (i: number) => (Math.floor(i / 2) / 3) * Math.PI * 2 + (i % 2 ? 
 
 export function CapabilitiesGrid() {
   return (
-    <section className="live-bg relative overflow-hidden bg-stage text-stage-foreground">
+    <section className="dark live-bg relative overflow-hidden bg-stage text-stage-foreground">
       <LiveBackground />
       <div className="relative mx-auto max-w-7xl px-6 py-24">
         <p className="eyebrow text-solar">Platform capabilities</p>
@@ -124,7 +124,7 @@ function OrbitSystem() {
     const render = () => {
       const w = stage.offsetWidth;
       if (!w) return;
-      const k = Math.min(1, (w - 48) / 900);
+      const k = Math.min(1, (w - 260) / 840);
 
       ORBITS.forEach((o, i) => {
         const ring = ringRefs.current[i];
@@ -179,7 +179,7 @@ function OrbitSystem() {
   }, []);
 
   return (
-    <div ref={stageRef} className="relative mx-auto mt-6 hidden h-[600px] max-w-5xl md:block">
+    <div ref={stageRef} className="relative mx-auto mt-6 hidden h-[680px] max-w-6xl md:block">
       {ORBITS.map((_, i) => (
         <div
           key={i}
