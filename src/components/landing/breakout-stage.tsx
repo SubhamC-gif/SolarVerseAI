@@ -337,7 +337,7 @@ function CinematicStage() {
                 </div>
               )}
               {i === 3 && (
-                <div className="pointer-events-auto mt-8 flex flex-wrap justify-center gap-3">
+                <div className="pointer-events-auto mt-8 flex flex-wrap justify-center gap-3 rounded-2xl bg-stage/90 p-3 ring-1 ring-stage-foreground/10 backdrop-blur-md">
                   <Button asChild size="lg">
                     <Link to="/advisor">
                       Calculate My Solar Potential <ArrowRight />
@@ -347,7 +347,7 @@ function CinematicStage() {
                     asChild
                     size="lg"
                     variant="outline"
-                    className="border-stage-foreground/20 bg-transparent text-stage-foreground hover:bg-stage-foreground/10"
+                    className="border-stage-foreground/20 bg-stage text-stage-foreground hover:bg-stage-foreground/10"
                   >
                     <Link to="/operator">Explore Solar Operators</Link>
                   </Button>
