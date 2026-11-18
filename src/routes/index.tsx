@@ -7,6 +7,7 @@ import { BreakoutStage } from "@/components/landing/breakout-stage";
 import { Reveal } from "@/components/landing/reveal";
 import { SolutionCards } from "@/components/landing/solution-cards";
 import { CapabilitiesGrid } from "@/components/landing/capabilities-grid";
+import { HowItWorks } from "@/components/landing/how-it-works";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -71,25 +72,7 @@ function Landing() {
 
       <CapabilitiesGrid />
 
-      <section className="mx-auto max-w-7xl px-6 py-24">
-        <p className="eyebrow">How SolarVerse works</p>
-        <div className="mt-10 grid gap-8 md:grid-cols-4">
-          {["Connect your solar data.", "Analyse using intelligent models.", "Discover actionable insights.", "Optimize solar performance."].map((s, i) => (
-            <Reveal key={s} delay={i * 120} className="border-t-2 border-forest pt-5">
-              <p className="font-display text-sm text-primary tnum">0{i + 1}</p>
-              <p className="mt-2 text-lg text-forest">{s}</p>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-6 pb-24">
-        <div className="rounded-2xl bg-cream px-10 py-16 text-center">
-          <h2 className="text-4xl font-light text-forest">Your Solar Future Starts Here.</h2>
-          <p className="mt-3 text-muted-foreground">Plan smarter. Generate better. Power a cleaner future.</p>
-          <Button asChild size="lg" className="mt-8"><Link to="/advisor">Start Your Solar Journey <ArrowRight /></Link></Button>
-        </div>
-      </section>
+      <HowItWorks />
       <SiteFooter />
     </div>
   );
