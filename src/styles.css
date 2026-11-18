@@ -206,6 +206,10 @@
   100% { transform: translateY(110%); opacity: 0; }
 }
 
+@keyframes chakra-spin {
+  to { transform: rotate(360deg); }
+}
+
 @keyframes flow-x {
   from { background-position: -200% 0; }
   to { background-position: 200% 0; }

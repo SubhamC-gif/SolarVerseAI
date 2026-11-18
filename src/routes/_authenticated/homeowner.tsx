@@ -18,6 +18,7 @@ import { ASSUMPTIONS, MONTHS, monthlySeries, inr, fmt, fmtDate } from "@/lib/sol
 import { assessmentsQuery, profileQuery, type Assessment } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { FaultDetectionUI } from "@/components/fault-detection-ui";
+import { ChakraBackdrop } from "@/components/dashboard-chakra";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert } from "@/integrations/supabase/types";
 
@@ -133,7 +134,8 @@ function Overview({ onNavigate }: { onNavigate: (view: string) => void }) {
   const city = latest?.city ?? profile?.city ?? SAMPLE_OVERVIEW.city;
 
   return (
-    <div className="space-y-6">
+    <div className="isolate relative space-y-6 overflow-hidden">
+      <ChakraBackdrop />
       <div className="grid gap-4 md:grid-cols-4">
         <Metric
           label="System size"
