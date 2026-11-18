@@ -270,6 +270,31 @@
   }
 }
 
+@keyframes word-in {
+  from { opacity: 0; transform: translateY(0.6em) rotateX(-70deg); filter: blur(10px); }
+  to { opacity: 1; transform: translateY(0) rotateX(0); filter: blur(0); }
+}
+
+@keyframes ken-burns {
+  from { transform: scale(1.14); }
+  to { transform: scale(1); }
+}
+
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(0.6deg); }
+}
+
+@keyframes scroll-dot {
+  0% { transform: translate(-50%, 0); opacity: 1; }
+  100% { transform: translate(-50%, 16px); opacity: 0; }
+}
+
+@keyframes shine {
+  from { transform: translateX(-120%); }
+  to { transform: translateX(120%); }
+}
+
 @keyframes nav-activate {
   from { transform: translateX(-6px); opacity: 0.4; }
   to { transform: translateX(0); opacity: 1; }
@@ -286,6 +311,78 @@
 
   .nav-item:hover .nav-icon {
     transform: rotate(-12deg) scale(1.15);
+  }
+}
+
+.hero-section {
+  --scroll: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-word {
+    display: inline-block;
+    transform-origin: 50% 100%;
+    animation: word-in 1s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: var(--d, 0ms);
+  }
+
+  .hero-ken {
+    animation: ken-burns 9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .hero-bg {
+    transform: translate3d(0, calc(var(--scroll) * 140px), 0) scale(calc(1 + var(--scroll) * 0.12));
+    will-change: transform;
+  }
+
+  .hero-copy {
+    transform: translate3d(0, calc(var(--scroll) * -100px), 0);
+    opacity: calc(1 - var(--scroll) * 1.8);
+  }
+
+  .hero-card {
+    transform: translate3d(0, calc(var(--scroll) * -160px), 0) rotate(calc(var(--scroll) * 8deg));
+    opacity: calc(1 - var(--scroll) * 1.4);
+  }
+
+  .hero-cue {
+    opacity: calc(1 - var(--scroll) * 5);
+  }
+
+  .hero-float {
+    animation: hero-float 6s ease-in-out infinite;
+  }
+
+  .hero-orb {
+    animation: orb-drift 14s ease-in-out infinite;
+  }
+
+  .hero-orb-2 {
+    animation-duration: 18s;
+    animation-direction: reverse;
+  }
+
+  .scroll-dot {
+    animation: scroll-dot 1.8s ease-in-out infinite;
+  }
+
+  .btn-shine {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .btn-shine::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.45) 50%, transparent 65%);
+    transform: translateX(-120%);
+    pointer-events: none;
+  }
+
+  .btn-shine:hover::after {
+    animation: shine 0.9s ease;
   }
 }
 
