@@ -10,7 +10,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-const CAPS: { icon: LucideIcon; t: string; d: string; to: "/operator" | "/homeowner" }[] = [
+type Cap = { icon: LucideIcon; t: string; d: string; to: "/operator" | "/homeowner" };
+
+const CAPS: Cap[] = [
   {
     icon: ScanSearch,
     t: "AI Solar Fault Detection",
@@ -49,6 +51,14 @@ const CAPS: { icon: LucideIcon; t: string; d: string; to: "/operator" | "/homeow
   },
 ];
 
+const ORBITS = [
+  { rx: 340, ry: 170, omega: 0.11 },
+  { rx: 190, ry: 98, omega: -0.17 },
+];
+
+const orbitOf = (i: number) => ORBITS[i % 2]!;
+const phaseOf = (i: number) => (Math.floor(i / 2) / 3) * Math.PI * 2 + (i % 2 ? Math.PI / 3 : 0);
+
 export function CapabilitiesGrid() {
   return (
     <section className="live-bg relative overflow-hidden bg-stage text-stage-foreground">
@@ -58,7 +68,8 @@ export function CapabilitiesGrid() {
         <h2 className="mt-3 max-w-xl text-4xl font-light">
           One intelligence layer for the full solar lifecycle.
         </h2>
-        <div className="mt-12 grid gap-4 md:grid-cols-3">
+        <OrbitSystem />
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 md:hidden">
           {CAPS.map((cap, i) => (
             <CapabilityBlock key={cap.t} cap={cap} index={i} />
           ))}
@@ -96,7 +107,134 @@ function LiveBackground() {
   );
 }
 
-function CapabilityBlock({ cap, index }: { cap: (typeof CAPS)[number]; index: number }) {
+function OrbitSystem() {
+  const stageRef = useRef<HTMLDivElement>(null);
+  const ringRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    let t = 0;
+    let paused = false;
+    let raf = 0;
+    let last = performance.now();
+
+    const render = () => {
+      const w = stage.offsetWidth;
+      if (!w) return;
+      const k = Math.min(1, (w - 48) / 900);
+
+      ORBITS.forEach((o, i) => {
+        const ring = ringRefs.current[i];
+        if (!ring) return;
+        ring.style.width = `${o.rx * 2 * k}px`;
+        ring.style.height = `${o.ry * 2 * k}px`;
+      });
+
+      CAPS.forEach((_, i) => {
+        const el = itemRefs.current[i];
+        if (!el) return;
+        const o = orbitOf(i);
+        const theta = phaseOf(i) + o.omega * t;
+        const x = o.rx * k * Math.cos(theta);
+        const y = o.ry * k * Math.sin(theta);
+        const depth = (Math.sin(theta) + 1) / 2;
+        el.style.transform = `translate(-50%, -50%) translate3d(${x}px, ${y}px, 0) scale(${0.8 + 0.2 * depth})`;
+        el.style.opacity = String(0.5 + 0.5 * depth);
+        el.style.zIndex = String(Math.round(depth * 100));
+      });
+    };
+
+    const frame = (now: number) => {
+      const dt = (now - last) / 1000;
+      last = now;
+      if (!paused) t += dt;
+      render();
+      raf = requestAnimationFrame(frame);
+    };
+
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const ro = new ResizeObserver(render);
+    ro.observe(stage);
+    render();
+    if (!reduce) raf = requestAnimationFrame(frame);
+
+    const pause = () => {
+      paused = true;
+    };
+    const resume = () => {
+      paused = false;
+    };
+    stage.addEventListener("pointerenter", pause);
+    stage.addEventListener("pointerleave", resume);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      stage.removeEventListener("pointerenter", pause);
+      stage.removeEventListener("pointerleave", resume);
+    };
+  }, []);
+
+  return (
+    <div ref={stageRef} className="relative mx-auto mt-6 hidden h-[600px] max-w-5xl md:block">
+      {ORBITS.map((_, i) => (
+        <div
+          key={i}
+          ref={(el) => {
+            ringRefs.current[i] = el;
+          }}
+          aria-hidden
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-white/15"
+        />
+      ))}
+
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" aria-hidden>
+        <div
+          className="flex h-32 w-32 items-center justify-center rounded-full text-center text-xs font-medium text-stage"
+          style={{
+            background:
+              "radial-gradient(circle at 50% 50%, #fff7d6 0%, #ffd23f 30%, rgba(255,176,0,0.45) 55%, transparent 72%)",
+            animation: "sun-pulse 4s ease-in-out infinite",
+          }}
+        >
+          SolarVerse AI
+        </div>
+      </div>
+
+      {CAPS.map((cap, i) => (
+        <OrbitCard
+          key={cap.t}
+          cap={cap}
+          ref={(el) => {
+            itemRefs.current[i] = el;
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function OrbitCard({ cap, ref }: { cap: Cap; ref: (el: HTMLAnchorElement | null) => void }) {
+  const I = cap.icon;
+  return (
+    <Link
+      ref={ref}
+      to={cap.to}
+      className="absolute left-1/2 top-1/2 w-60 rounded-xl border border-white/10 bg-stage/80 p-5 shadow-lift backdrop-blur-md transition-colors duration-300 hover:border-solar/60"
+    >
+      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-solar/15 text-solar">
+        <I className="h-4 w-4" />
+      </span>
+      <h3 className="mt-4 text-base font-medium">{cap.t}</h3>
+      <p className="mt-1.5 text-xs text-stage-muted">{cap.d}</p>
+    </Link>
+  );
+}
+
+function CapabilityBlock({ cap, index }: { cap: Cap; index: number }) {
   const ref = useRef<HTMLAnchorElement>(null);
   const [shown, setShown] = useState(false);
 
@@ -119,7 +257,7 @@ function CapabilityBlock({ cap, index }: { cap: (typeof CAPS)[number]; index: nu
   const style: CSSProperties = {
     opacity: shown ? 1 : 0,
     transform: shown ? "translate3d(0,0,0)" : "translate3d(0,48px,0) scale(0.97)",
-    transitionDelay: `${(index % 3) * 140}ms`,
+    transitionDelay: `${(index % 2) * 140}ms`,
   };
 
   const I = cap.icon;
@@ -129,16 +267,12 @@ function CapabilityBlock({ cap, index }: { cap: (typeof CAPS)[number]; index: nu
       ref={ref}
       to={cap.to}
       style={style}
-      className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] p-8 backdrop-blur-sm transition-[opacity,transform,border-color,background-color] duration-700 ease-out hover:-translate-y-1 hover:border-solar/50 hover:bg-white/[0.08]"
+      className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm transition-[opacity,transform,border-color,background-color] duration-700 ease-out hover:-translate-y-1 hover:border-solar/50 hover:bg-white/[0.08]"
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px origin-left scale-x-0 bg-solar transition-transform duration-700 group-hover:scale-x-100"
-      />
-      <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-solar/15 text-solar transition-transform duration-500 group-hover:scale-110">
+      <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-solar/15 text-solar">
         <I className="h-5 w-5" />
       </span>
-      <h3 className="mt-6 text-lg font-medium">{cap.t}</h3>
+      <h3 className="mt-5 text-lg font-medium">{cap.t}</h3>
       <p className="mt-2 text-sm text-stage-muted">{cap.d}</p>
     </Link>
   );

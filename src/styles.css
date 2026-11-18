@@ -194,6 +194,11 @@
   to { background-position: 56px 56px, 56px 56px; }
 }
 
+@keyframes sun-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
 @keyframes scan-line {
   0% { transform: translateY(-10%); opacity: 0; }
   15% { opacity: 0.6; }
