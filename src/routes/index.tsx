@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, ScanSearch, LineChart, Home, Wind, IndianRupee, Wrench } from "lucide-react";
 import hero from "@/assets/hero-solar.jpg";
 import { Button } from "@/components/ui/button";
-import { SiteNav, SiteFooter, DemoBadge } from "@/components/brand";
+import { SiteNav, SiteFooter } from "@/components/brand";
 import { BreakoutStage } from "@/components/landing/breakout-stage";
 import { FrameScroll } from "@/components/landing/frame-scroll";
 import { Reveal } from "@/components/landing/reveal";
@@ -54,7 +54,7 @@ function Landing() {
           <div className="fade-up self-end justify-self-end [animation-delay:200ms]">
             <div className="w-72 rounded-xl border bg-card/90 p-5 shadow-lift backdrop-blur">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-forest">Live system</p><DemoBadge label="Illustrative" />
+                <p className="text-sm font-medium text-forest">Live system</p>
               </div>
               <p className="mt-4 eyebrow">Live generation</p>
               <p className="font-display text-4xl font-light text-forest tnum">8.42 <span className="text-base text-muted-foreground">kW</span></p>
