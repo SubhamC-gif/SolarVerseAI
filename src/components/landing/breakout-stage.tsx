@@ -239,7 +239,7 @@ function CinematicStage() {
     <section
       ref={sectionRef}
       aria-label="SolarVerse ecosystem overview"
-      className="relative h-[330vh] bg-[oklch(0.99_0.005_150)] text-stage-foreground dark:bg-stage"
+      className="relative h-[330vh] bg-stage text-stage-foreground"
     >
       <div className="sticky top-0 h-screen overflow-hidden">
         <div
