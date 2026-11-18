@@ -183,3 +183,26 @@
     transform: none;
   }
 }
+
+@keyframes orb-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(60px, -40px, 0) scale(1.12); }
+}
+
+@keyframes grid-drift {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 56px 56px, 56px 56px; }
+}
+
+@keyframes scan-line {
+  0% { transform: translateY(-10%); opacity: 0; }
+  15% { opacity: 0.6; }
+  85% { opacity: 0.6; }
+  100% { transform: translateY(110%); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-bg * {
+    animation: none !important;
+  }
+}

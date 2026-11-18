@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, ScanSearch, LineChart, Home, Wind, IndianRupee, Wrench } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import hero from "@/assets/hero-solar.jpg";
 import { Button } from "@/components/ui/button";
 import { SiteNav, SiteFooter } from "@/components/brand";
 import { BreakoutStage } from "@/components/landing/breakout-stage";
 import { Reveal } from "@/components/landing/reveal";
 import { SolutionCards } from "@/components/landing/solution-cards";
+import { CapabilitiesGrid } from "@/components/landing/capabilities-grid";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -20,15 +21,6 @@ export const Route = createFileRoute("/")({
   }),
   component: Landing,
 });
-
-const CAPS = [
-  { icon: ScanSearch, t: "AI Solar Fault Detection", d: "Flag cracks, hotspots and cell abnormalities from inspection imagery.", to: "/operator" },
-  { icon: LineChart, t: "Intelligent Energy Forecasting", d: "Typical-year estimates and short-term weather-aware outlooks.", to: "/operator" },
-  { icon: Home, t: "Smart Rooftop Planning", d: "Right-size capacity to your roof, usage and budget.", to: "/homeowner" },
-  { icon: Wind, t: "Dust & Soiling Analysis", d: "Quantify soiling losses and time cleaning cycles.", to: "/operator" },
-  { icon: IndianRupee, t: "Financial & ROI Intelligence", d: "Payback, savings and 20-year projections in ₹.", to: "/homeowner" },
-  { icon: Wrench, t: "Predictive Maintenance", d: "Prioritise inspections before output drops.", to: "/operator" },
-];
 
 function Landing() {
   return (
@@ -77,21 +69,7 @@ function Landing() {
         <SolutionCards />
       </section>
 
-      <section className="border-y bg-card">
-        <div className="mx-auto max-w-7xl px-6 py-24">
-          <p className="eyebrow">Platform capabilities</p>
-          <h2 className="mt-3 max-w-xl text-4xl font-light text-forest">One intelligence layer for the full solar lifecycle.</h2>
-          <Reveal className="mt-12 grid gap-px overflow-hidden rounded-xl border bg-border md:grid-cols-3">
-            {CAPS.map(({ icon: I, t, d, to }) => (
-              <Link key={t} to={to} className="group bg-card p-8 transition-colors hover:bg-cream">
-                <I className="h-5 w-5 text-primary transition-colors group-hover:text-forest" />
-                <h3 className="mt-6 text-lg font-medium text-forest">{t}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{d}</p>
-              </Link>
-            ))}
-          </Reveal>
-        </div>
-      </section>
+      <CapabilitiesGrid />
 
       <section className="mx-auto max-w-7xl px-6 py-24">
         <p className="eyebrow">How SolarVerse works</p>
