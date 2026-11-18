@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 
 export function Logo({ light = false }: { light?: boolean }) {
@@ -12,7 +13,7 @@ export function Logo({ light = false }: { light?: boolean }) {
         <path d="M8 24c3-7 9-9 16-8-2 6-8 9-16 8z" className="fill-lime" />
         <path d="M9 23l7-5m0 0h4m-4 0v-3" className="stroke-forest" strokeWidth="1.2" fill="none" />
       </svg>
-      <span className={cn("font-display text-[17px] font-medium tracking-tight", light ? "text-forest-foreground" : "text-forest")}>
+      <span className={cn("font-display text-[17px] font-medium tracking-tight", light ? "text-inverse-foreground" : "text-forest")}>
         SolarVerse <span className="text-primary">AI</span>
       </span>
     </Link>
@@ -21,7 +22,7 @@ export function Logo({ light = false }: { light?: boolean }) {
 
 export function DemoBadge({ label = "Demo data" }: { label?: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-solar/60 bg-cream px-2.5 py-0.5 text-[11px] font-medium text-solar-foreground">
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-solar/60 bg-solar/15 px-2.5 py-0.5 text-[11px] font-medium text-solar-foreground">
       <span className="h-1.5 w-1.5 rounded-full bg-solar" /> {label}
     </span>
   );
@@ -53,7 +54,10 @@ export function SiteNav() {
             </Link>
           ))}
         </nav>
-        <Button asChild size="sm"><Link to="/advisor">Get Started</Link></Button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Button asChild size="sm"><Link to="/advisor">Get Started</Link></Button>
+        </div>
       </div>
     </header>
   );
@@ -61,7 +65,7 @@ export function SiteNav() {
 
 export function SiteFooter() {
   return (
-    <footer className="bg-forest text-forest-foreground">
+    <footer className="bg-inverse text-inverse-foreground">
       <div className="mx-auto grid max-w-7xl gap-10 px-6 py-16 md:grid-cols-4">
         <div className="space-y-3">
           <Logo light />
@@ -78,7 +82,7 @@ export function SiteFooter() {
           </div>
         ))}
       </div>
-      <div className="border-t border-forest-foreground/10 py-6 text-center text-xs opacity-60">© 2026 SolarVerse AI. Figures on this site are illustrative estimates.</div>
+      <div className="border-t border-inverse-foreground/10 py-6 text-center text-xs opacity-60">© 2026 SolarVerse AI. Figures on this site are illustrative estimates.</div>
     </footer>
   );
 }

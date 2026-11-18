@@ -1,8 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, ScanSearch, LineChart, Home, Wind, IndianRupee, Wrench } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import hero from "@/assets/hero-solar.jpg";
 import { Button } from "@/components/ui/button";
-import { SiteNav, SiteFooter, DemoBadge } from "@/components/brand";
+import { SiteNav, SiteFooter } from "@/components/brand";
+import { BreakoutStage } from "@/components/landing/breakout-stage";
+import { Reveal } from "@/components/landing/reveal";
+import { SolutionCards } from "@/components/landing/solution-cards";
+import { CapabilitiesGrid } from "@/components/landing/capabilities-grid";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -17,15 +21,6 @@ export const Route = createFileRoute("/")({
   }),
   component: Landing,
 });
-
-const CAPS = [
-  { icon: ScanSearch, t: "AI Solar Fault Detection", d: "Flag cracks, hotspots and cell abnormalities from inspection imagery.", to: "/operator" },
-  { icon: LineChart, t: "Intelligent Energy Forecasting", d: "Typical-year estimates and short-term weather-aware outlooks.", to: "/operator" },
-  { icon: Home, t: "Smart Rooftop Planning", d: "Right-size capacity to your roof, usage and budget.", to: "/homeowner" },
-  { icon: Wind, t: "Dust & Soiling Analysis", d: "Quantify soiling losses and time cleaning cycles.", to: "/operator" },
-  { icon: IndianRupee, t: "Financial & ROI Intelligence", d: "Payback, savings and 20-year projections in ₹.", to: "/homeowner" },
-  { icon: Wrench, t: "Predictive Maintenance", d: "Prioritise inspections before output drops.", to: "/operator" },
-];
 
 function Landing() {
   return (
@@ -51,7 +46,7 @@ function Landing() {
           <div className="fade-up self-end justify-self-end [animation-delay:200ms]">
             <div className="w-72 rounded-xl border bg-card/90 p-5 shadow-lift backdrop-blur">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-forest">Live system</p><DemoBadge label="Illustrative" />
+                <p className="text-sm font-medium text-forest">Live system</p>
               </div>
               <p className="mt-4 eyebrow">Live generation</p>
               <p className="font-display text-4xl font-light text-forest tnum">8.42 <span className="text-base text-muted-foreground">kW</span></p>
@@ -65,49 +60,25 @@ function Landing() {
         </div>
       </section>
 
+      <BreakoutStage />
+
       <section className="mx-auto max-w-7xl px-6 py-24">
-        <p className="eyebrow">Two ways to use SolarVerse</p>
-        <div className="mt-8 grid gap-6 md:grid-cols-2">
-          {[
-            { k: "Homeowner Intelligence", h: "Make your rooftop work smarter.", items: ["Solar capacity recommendation", "Annual production estimate", "Installation cost estimation", "Savings calculator", "Battery configuration"], cta: "Explore Home Solar", to: "/homeowner" as const, dark: false },
-            { k: "Solar Plant Intelligence", h: "Manage every panel. Understand every watt.", items: ["Plant monitoring", "Fault detection", "Generation forecasting", "Soiling analytics", "Predictive maintenance"], cta: "Explore Plant Management", to: "/operator" as const, dark: true },
-          ].map((c) => (
-            <div key={c.k} className={c.dark ? "rounded-xl bg-forest p-10 text-forest-foreground" : "rounded-xl border bg-card p-10 shadow-soft"}>
-              <p className={c.dark ? "eyebrow text-solar" : "eyebrow text-primary"}>{c.k}</p>
-              <h2 className="mt-4 text-3xl font-light">{c.h}</h2>
-              <ul className="mt-6 space-y-2.5 text-sm opacity-85">
-                {c.items.map((i) => <li key={i} className="flex items-center gap-3"><span className="h-1 w-4 rounded bg-solar" />{i}</li>)}
-              </ul>
-              <Button asChild variant={c.dark ? "secondary" : "default"} className="mt-8"><Link to={c.to}>{c.cta} <ArrowRight /></Link></Button>
-            </div>
-          ))}
-        </div>
+        <Reveal>
+          <p className="eyebrow">Two ways to use SolarVerse</p>
+        </Reveal>
+        <SolutionCards />
       </section>
 
-      <section className="border-y bg-card">
-        <div className="mx-auto max-w-7xl px-6 py-24">
-          <p className="eyebrow">Platform capabilities</p>
-          <h2 className="mt-3 max-w-xl text-4xl font-light text-forest">One intelligence layer for the full solar lifecycle.</h2>
-          <div className="mt-12 grid gap-px overflow-hidden rounded-xl border bg-border md:grid-cols-3">
-            {CAPS.map(({ icon: I, t, d, to }) => (
-              <Link key={t} to={to} className="group bg-card p-8 transition-colors hover:bg-cream">
-                <I className="h-5 w-5 text-primary transition-colors group-hover:text-forest" />
-                <h3 className="mt-6 text-lg font-medium text-forest">{t}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{d}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      <CapabilitiesGrid />
 
       <section className="mx-auto max-w-7xl px-6 py-24">
         <p className="eyebrow">How SolarVerse works</p>
         <div className="mt-10 grid gap-8 md:grid-cols-4">
           {["Connect your solar data.", "Analyse using intelligent models.", "Discover actionable insights.", "Optimize solar performance."].map((s, i) => (
-            <div key={s} className="border-t-2 border-forest pt-5">
+            <Reveal key={s} delay={i * 120} className="border-t-2 border-forest pt-5">
               <p className="font-display text-sm text-primary tnum">0{i + 1}</p>
               <p className="mt-2 text-lg text-forest">{s}</p>
-            </div>
+            </Reveal>
           ))}
         </div>
       </section>
