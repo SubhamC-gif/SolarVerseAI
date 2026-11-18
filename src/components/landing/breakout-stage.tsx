@@ -120,15 +120,15 @@ function StaticShowcase() {
   return (
     <section
       aria-label="SolarVerse ecosystem overview"
-      className="relative overflow-hidden bg-[#050608] px-6 py-24 text-white"
+      className="relative overflow-hidden bg-stage px-6 py-24 text-stage-foreground"
     >
       <div className="mx-auto max-w-6xl">
         <Reveal>
-          <p className="text-xs uppercase tracking-[0.16em] text-[#00D6FF]">{INTRO.eyebrow}</p>
+          <p className="text-xs uppercase tracking-[0.16em] text-stage-accent">{INTRO.eyebrow}</p>
           <h2 className="mt-3 max-w-2xl text-3xl font-light tracking-tight md:text-4xl">
             {INTRO.title}
           </h2>
-          <p className="mt-3 max-w-xl text-base text-zinc-400">{INTRO.body}</p>
+          <p className="mt-3 max-w-xl text-base text-stage-muted">{INTRO.body}</p>
         </Reveal>
         <Reveal className="mt-12" delay={80}>
           <ModuleView kind="home" large />
@@ -141,7 +141,7 @@ function StaticShowcase() {
                   kind={m.kind}
                   className="transition-transform duration-500 group-hover:-translate-y-1"
                 />
-                <p className="mt-3 text-sm text-zinc-400 transition-colors group-hover:text-white">
+                <p className="mt-3 text-sm text-stage-muted transition-colors group-hover:text-stage-foreground">
                   {m.label}
                 </p>
               </Link>
@@ -252,7 +252,7 @@ function CinematicStage() {
     <section
       ref={sectionRef}
       aria-label="SolarVerse ecosystem overview"
-      className="relative h-[330vh] bg-[#050608] text-white"
+      className="relative h-[330vh] bg-stage text-stage-foreground"
     >
       <div className="sticky top-0 h-screen overflow-hidden">
         <div
@@ -317,9 +317,9 @@ function CinematicStage() {
                 beat === i ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0",
               )}
             >
-              <p className="text-xs uppercase tracking-[0.16em] text-[#00D6FF]">{b.eyebrow}</p>
+              <p className="text-xs uppercase tracking-[0.16em] text-stage-accent">{b.eyebrow}</p>
               <h2 className="mt-3 text-3xl font-light tracking-tight md:text-4xl">{b.title}</h2>
-              <p className="mx-auto mt-3 max-w-xl text-base text-zinc-400">{b.body}</p>
+              <p className="mx-auto mt-3 max-w-xl text-base text-stage-muted">{b.body}</p>
               {i === 3 && (
                 <div className="pointer-events-auto mt-8 flex flex-wrap justify-center gap-3">
                   <Button asChild size="lg">
@@ -331,7 +331,7 @@ function CinematicStage() {
                     asChild
                     size="lg"
                     variant="outline"
-                    className="border-white/20 bg-transparent text-white hover:bg-white/10"
+                    className="border-stage-foreground/20 bg-transparent text-stage-foreground hover:bg-stage-foreground/10"
                   >
                     <Link to="/operator">Explore Solar Operators</Link>
                   </Button>

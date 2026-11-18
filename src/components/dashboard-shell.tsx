@@ -6,6 +6,7 @@ import { Menu, LogOut, Home, Factory, Loader2 } from "lucide-react";
 import { Logo, DemoBadge } from "@/components/brand";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRole, homeFor, setMyRole, type AppRole } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -123,6 +124,10 @@ export function DashboardLayout({ nav, roleLabel, children }: { nav: NavItem[]; 
         <p className="mt-6 px-3 eyebrow">{roleLabel}</p>
         <div className="mt-2 flex-1 overflow-y-auto"><NavLinks nav={nav} /></div>
         <div className="mt-4 space-y-3 border-t pt-4">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs text-muted-foreground">Appearance</span>
+            <ThemeToggle />
+          </div>
           <RoleSwitcher />
           <SignOut />
         </div>
@@ -130,21 +135,24 @@ export function DashboardLayout({ nav, roleLabel, children }: { nav: NavItem[]; 
       <div className="min-w-0 flex-1 flex flex-col">
         <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b bg-background/90 px-4 backdrop-blur lg:hidden">
           <Logo />
-          <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon" aria-label="Open menu"><Menu /></Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="flex w-72 flex-col">
-              <SheetTitle className="sr-only">Menu</SheetTitle>
-              <Logo />
-              <p className="mt-4 px-3 eyebrow">{roleLabel}</p>
-              <div className="flex-1 overflow-y-auto"><NavLinks nav={nav} onNavigate={() => setOpen(false)} /></div>
-              <div className="mt-4 space-y-3 border-t pt-4">
-                <RoleSwitcher />
-                <SignOut />
-              </div>
-            </SheetContent>
-          </Sheet>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Sheet open={open} onOpenChange={setOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" aria-label="Open menu"><Menu /></Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="flex w-72 flex-col">
+                <SheetTitle className="sr-only">Menu</SheetTitle>
+                <Logo />
+                <p className="mt-4 px-3 eyebrow">{roleLabel}</p>
+                <div className="flex-1 overflow-y-auto"><NavLinks nav={nav} onNavigate={() => setOpen(false)} /></div>
+                <div className="mt-4 space-y-3 border-t pt-4">
+                  <RoleSwitcher />
+                  <SignOut />
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </header>
         <div className="flex-1 overflow-y-auto">
           {children}

@@ -78,7 +78,7 @@ function Landing() {
             { k: "Homeowner Intelligence", h: "Make your rooftop work smarter.", items: ["Solar capacity recommendation", "Annual production estimate", "Installation cost estimation", "Savings calculator", "Battery configuration"], cta: "Explore Home Solar", to: "/homeowner" as const, dark: false },
             { k: "Solar Plant Intelligence", h: "Manage every panel. Understand every watt.", items: ["Plant monitoring", "Fault detection", "Generation forecasting", "Soiling analytics", "Predictive maintenance"], cta: "Explore Plant Management", to: "/operator" as const, dark: true },
           ].map((c, i) => (
-            <Reveal key={c.k} delay={i * 120} className={c.dark ? "rounded-xl bg-forest p-10 text-forest-foreground" : "rounded-xl border bg-card p-10 shadow-soft"}>
+            <Reveal key={c.k} delay={i * 120} className={c.dark ? "rounded-xl bg-inverse p-10 text-inverse-foreground" : "rounded-xl border bg-card p-10 shadow-soft"}>
               <p className={c.dark ? "eyebrow text-solar" : "eyebrow text-primary"}>{c.k}</p>
               <h2 className="mt-4 text-3xl font-light">{c.h}</h2>
               <ul className="mt-6 space-y-2.5 text-sm opacity-85">
