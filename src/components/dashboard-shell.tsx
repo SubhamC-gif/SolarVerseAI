@@ -19,6 +19,7 @@ function NavLinks({ nav, onNavigate }: { nav: NavItem[]; onNavigate?: () => void
       {nav.map(({ icon: I, label, to, exact, onClick, active }) => (
         <Link
           key={label}
+          data-active={active ? "true" : undefined}
           to={to}
           onClick={(e) => {
             onClick?.(e);
@@ -26,12 +27,12 @@ function NavLinks({ nav, onNavigate }: { nav: NavItem[]; onNavigate?: () => void
           }}
           activeOptions={{ exact: !!exact }}
           className={cn(
-            "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors hover:bg-muted hover:text-forest",
+            "nav-item group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-all duration-300 hover:translate-x-1 hover:bg-muted hover:text-forest",
             active ? "bg-forest text-forest-foreground" : "text-muted-foreground"
           )}
           activeProps={active === undefined ? { className: "!bg-forest !text-forest-foreground" } : undefined}
         >
-          <I className="h-4 w-4 shrink-0" /> <span className="truncate">{label}</span>
+          <I className="nav-icon h-4 w-4 shrink-0" /> <span className="truncate">{label}</span>
         </Link>
       ))}
     </nav>
