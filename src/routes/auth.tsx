@@ -81,13 +81,31 @@ function AuthPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-background to-muted/20 px-4 py-10 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 bg-card p-8 rounded-2xl border shadow-xl transition-all duration-300">
+    <div
+      className={`relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-b from-background to-muted/20 px-4 py-10 sm:px-6 lg:px-8 ${mode === "in" ? "auth-login" : "auth-signup"}`}
+    >
+      <div key={mode} className="auth-bg" aria-hidden>
+        {mode === "in" ? (
+          <>
+            <div className="auth-blob auth-blob-a" />
+            <div className="auth-blob auth-blob-b" />
+          </>
+        ) : (
+          <>
+            <div className="auth-rays" />
+            <div className="auth-sun" />
+          </>
+        )}
+      </div>
+      <div className="relative z-10 w-full max-w-md space-y-8 bg-card p-8 rounded-2xl border shadow-xl transition-all duration-300">
         <div className="flex flex-col items-center text-center space-y-2">
           <div className="mb-4 transform hover:scale-105 transition-transform duration-300">
             <Logo />
           </div>
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">
+          <h1
+            key={mode}
+            className={`text-3xl font-semibold tracking-tight text-foreground ${mode === "in" ? "auth-title-login" : "auth-title-signup"}`}
+          >
             {mode === "in" ? "Welcome back" : "Create account"}
           </h1>
           <p className="text-sm text-muted-foreground max-w-[280px]">
@@ -209,4 +227,3 @@ function AuthPage() {
     </div>
   );
 }
-
