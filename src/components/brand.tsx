@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
+import { Minus, TrendingDown, TrendingUp, type LucideIcon } from "lucide-react";
 
 export function Logo({ light = false }: { light?: boolean }) {
   return (
@@ -118,13 +119,43 @@ export function SiteFooter() {
   );
 }
 
-export function Metric({ label, value, unit, hint }: { label: string; value: string; unit?: string; hint?: string }) {
+export function Metric({
+  label,
+  value,
+  unit,
+  hint,
+  icon: Icon,
+  trend,
+  className,
+}: {
+  label: string;
+  value: string;
+  unit?: string;
+  hint?: string;
+  icon?: LucideIcon;
+  trend?: { label: string; up: boolean | null };
+  className?: string;
+}) {
   return (
-    <div className="rounded-lg border bg-card p-5 shadow-soft">
-      <p className="eyebrow">{label}</p>
+    <div className={cn("relative overflow-hidden rounded-lg border bg-card p-5 shadow-soft", className)}>
+      <div className="flex items-start justify-between gap-3">
+        <p className="eyebrow">{label}</p>
+        {Icon && <Icon className="h-4 w-4 shrink-0 text-primary" />}
+      </div>
       <p className="mt-3 font-display text-3xl font-light text-forest tnum">
         {value}{unit && <span className="ml-1 text-base text-muted-foreground">{unit}</span>}
       </p>
+      {trend && (
+        <p
+          className={cn(
+            "mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
+            trend.up === null ? "bg-muted text-muted-foreground" : trend.up ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive",
+          )}
+        >
+          {trend.up === null ? <Minus className="h-3 w-3" /> : trend.up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+          {trend.label}
+        </p>
+      )}
       {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
     </div>
   );

@@ -3,7 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { LayoutGrid, Sun, Settings2, LineChart, IndianRupee, Battery, Leaf, FileText, Settings, ScanSearch, Cloud, CloudRain, LogOut, Plus, Trash2, Eye, Printer, Check, X } from "lucide-react";
+import { LayoutGrid, Sun, Settings2, LineChart, IndianRupee, Battery, Leaf, FileText, Settings, ScanSearch, Cloud, CloudRain, LogOut, Plus, Trash2, Eye, Printer, Check, X, Zap } from "lucide-react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Line, ComposedChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { DashboardShell, Panel, Empty } from "@/components/dashboard-shell";
 import { Metric } from "@/components/brand";
@@ -110,6 +110,22 @@ function Homeowner() {
 // profile / assessment yet. Clearly labelled as sample data in the UI.
 const SAMPLE_OVERVIEW = { kw: 3, city: "Bengaluru" };
 
+const LOTUS_ART = "https://cdn.builder.io/api/v1/image/assets%2F227ea64416784558ad9ffc5617782caa%2Fc732738bc76d430388bf908fc1929e55?format=webp&width=800&height=1200";
+
+function Sparkline({ values }: { values: number[] }) {
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  const span = max - min || 1;
+  const points = values
+    .map((v, i) => `${(i / (values.length - 1)) * 240},${40 - ((v - min) / span) * 36 - 2}`)
+    .join(" ");
+  return (
+    <svg viewBox="0 0 240 40" className="h-10 w-full max-w-xs" aria-hidden>
+      <polyline points={points} fill="none" stroke="#FFC21A" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 const QUICK_LINKS = [
   { icon: Sun, label: "Solar Potential", desc: "Check your roof's capacity" },
   { icon: Settings2, label: "System Planner", desc: "Plan panels, inverter and cost" },
@@ -132,43 +148,79 @@ function Overview({ onNavigate }: { onNavigate: (view: string) => void }) {
 
   const city = latest?.city ?? profile?.city ?? SAMPLE_OVERVIEW.city;
 
+  const monthIdx = new Date().getMonth();
+  const prevIdx = (monthIdx + 11) % 12;
+  const monthDelta = series[prevIdx]!.expected > 0
+    ? ((series[monthIdx]!.expected - series[prevIdx]!.expected) / series[prevIdx]!.expected) * 100
+    : 0;
+  const trendLabel = `${fmt(Math.abs(monthDelta), 1)}% vs last month`;
+  const trendUp = monthDelta >= 0;
+  const peakIdx = series.reduce((best, d, i) => (d.expected > series[best]!.expected ? i : best), 0);
+  const liveKw = series[monthIdx]!.expected / DAYS_IN_MONTH[monthIdx]! / (CITY_SUN_HOURS[city] ?? 5);
+  const firstName = profile?.display_name?.split(" ")[0];
+
   return (
-    <div className="space-y-6">
-      <div className="live-bg fade-up relative overflow-hidden rounded-xl border bg-card p-4 shadow-soft">
-        <div className="flex flex-wrap items-center gap-3">
-          <Sun className="h-5 w-5 text-solar" style={{ animation: "sun-pulse 3s ease-in-out infinite" }} />
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="live-ping absolute inline-flex h-full w-full rounded-full bg-primary" />
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
-          </span>
-          <p className="text-sm font-medium text-forest">Live generation</p>
-          <p className="text-xs text-muted-foreground">{fmt(kw, 1)} kW system · {city}</p>
+    <div className="relative isolate space-y-6">
+      <div aria-hidden className="dark-mandala" />
+
+      <section aria-label="Live generation" className="fade-up relative overflow-hidden rounded-3xl bg-[#0A3D2A] text-white shadow-soft">
+        <img src={LOTUS_ART} alt="" aria-hidden className="hero-lotus absolute inset-0 h-full w-full object-cover object-right" />
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-[#0A3D2A] via-[#0A3D2A]/85 to-[#0A3D2A]/15" />
+        <div className="relative max-w-md p-6 sm:p-8">
+          <p className="text-sm text-white/75">Good morning{firstName ? `, ${firstName}` : ""}</p>
+          <p className="mt-0.5 text-xs uppercase tracking-wider text-white/60">{city}</p>
+          <div className="mt-5 flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="live-ping absolute inline-flex h-full w-full rounded-full bg-amber-300" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-300" />
+            </span>
+            <span className="text-xs font-medium uppercase tracking-wider text-amber-300">Live</span>
+          </div>
+          <p className="mt-2 font-display text-5xl font-light tnum">
+            {fmt(liveKw, 2)}<span className="ml-2 text-lg text-white/70">kW</span>
+          </p>
+          <p className="mt-1 text-xs text-white/60">Estimated output this month · {fmt(kw, 1)} kW system</p>
+          <div className="mt-6">
+            <Sparkline values={series.map((d) => d.expected)} />
+            <p className="mt-1 text-[11px] text-white/60">12-month generation trend</p>
+          </div>
         </div>
-        <div className="energy-flow mt-4 h-1.5 w-full rounded-full opacity-80" />
-      </div>
+      </section>
 
       <div className="fade-up grid gap-4 md:grid-cols-4" style={{ animationDelay: "80ms" }}>
         <Metric
+          className="kpi-card"
+          icon={Sun}
           label="System size"
           value={fmt(kw, 1)}
           unit="kW"
+          trend={{ label: "Steady", up: null }}
           hint={saved ? "From your latest saved assessment" : "Sample value"}
         />
         <Metric
+          className="kpi-card"
+          icon={Zap}
           label="Yearly generation"
           value={fmt(annualKwh)}
           unit="kWh"
+          trend={{ label: trendLabel, up: trendUp }}
           hint={saved ? "Estimated for your saved system" : `Sample estimate at ${fmt(ASSUMPTIONS.specificYield)} kWh/kWp`}
         />
         <Metric
+          className="kpi-card"
+          icon={IndianRupee}
           label="Yearly savings"
           value={inr(annualSavings)}
+          trend={{ label: trendLabel, up: trendUp }}
           hint={`at ₹${ASSUMPTIONS.tariff}/kWh`}
         />
         <Metric
+          className="kpi-card"
+          icon={Leaf}
           label="CO₂ avoided"
           value={fmt(co2, 2)}
           unit="t/yr"
+          trend={{ label: trendLabel, up: trendUp }}
           hint={`Grid factor ${ASSUMPTIONS.emissionFactor} kg/kWh`}
         />
       </div>
@@ -194,12 +246,16 @@ function Overview({ onNavigate }: { onNavigate: (view: string) => void }) {
         <Panel title="Monthly generation estimate (kWh)">
           <div className="h-72">
             <ResponsiveContainer>
-              <BarChart data={series}>
+              <BarChart data={series} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid vertical={false} stroke="var(--border)" />
                 <XAxis dataKey="month" tickLine={false} axisLine={false} fontSize={12} />
-                <YAxis tickLine={false} axisLine={false} fontSize={12} />
+                <YAxis width={56} tickLine={false} axisLine={false} fontSize={12} tickFormatter={(v: number) => `${Math.round(v / 1000)}k`} />
                 <Tooltip formatter={(v: number) => `${fmt(v)} kWh`} contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }} />
-                <Bar dataKey="expected" name="Monthly generation" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="expected" name="Monthly generation" radius={[3, 3, 0, 0]}>
+                  {series.map((d, i) => (
+                    <Cell key={d.month} fill={i === peakIdx ? "#FFC21A" : "#4D8B6A"} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
