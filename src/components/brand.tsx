@@ -63,6 +63,29 @@ export function SiteNav() {
   );
 }
 
+const FOOTER_COLUMNS: { heading: string; items: { label: string; to?: "/advisor" | "/homeowner" | "/operator" }[] }[] = [
+  {
+    heading: "Homeowners",
+    items: [
+      { label: "Solar Advisor", to: "/advisor" },
+      { label: "Savings & ROI", to: "/homeowner" },
+      { label: "Battery Planner", to: "/homeowner" },
+    ],
+  },
+  {
+    heading: "Operators",
+    items: [
+      { label: "Plant Monitoring", to: "/operator" },
+      { label: "Fault Detection", to: "/operator" },
+      { label: "Forecasting", to: "/operator" },
+    ],
+  },
+  {
+    heading: "Company",
+    items: [{ label: "About" }, { label: "Privacy" }, { label: "Terms" }, { label: "Contact" }],
+  },
+];
+
 export function SiteFooter() {
   return (
     <footer className="bg-inverse text-inverse-foreground">
@@ -71,14 +94,22 @@ export function SiteFooter() {
           <Logo light />
           <p className="text-sm opacity-70">Powering Smarter Homes. Optimizing a Greener Planet.</p>
         </div>
-        {[
-          ["Homeowners", ["Solar Advisor", "Savings & ROI", "Battery Planner"]],
-          ["Operators", ["Plant Monitoring", "Fault Detection", "Forecasting"]],
-          ["Company", ["About", "Privacy", "Terms", "Contact"]],
-        ].map(([h, items]) => (
-          <div key={h as string}>
-            <p className="mb-3 text-xs uppercase tracking-[0.14em] opacity-60">{h}</p>
-            <ul className="space-y-2 text-sm opacity-85">{(items as string[]).map((i) => <li key={i}>{i}</li>)}</ul>
+        {FOOTER_COLUMNS.map((col) => (
+          <div key={col.heading}>
+            <p className="mb-3 text-xs uppercase tracking-[0.14em] opacity-60">{col.heading}</p>
+            <ul className="space-y-2 text-sm opacity-85">
+              {col.items.map((item) => (
+                <li key={item.label}>
+                  {item.to ? (
+                    <Link to={item.to} className="transition-colors hover:text-solar hover:opacity-100">
+                      {item.label}
+                    </Link>
+                  ) : (
+                    item.label
+                  )}
+                </li>
+              ))}
+            </ul>
           </div>
         ))}
       </div>
