@@ -409,8 +409,8 @@
 
 @media (min-width: 1024px) {
   .auth-art {
-    --art-w: min(600px, 40vw, 62vh);
-    left: 26%;
+    --art-w: min(820px, 58vw, 84vh);
+    left: 30%;
     opacity: 1;
   }
 }

@@ -95,7 +95,7 @@ function AuthPage() {
           </div>
           <h1
             key={mode}
-            className={`text-3xl font-semibold tracking-tight text-foreground ${mode === "in" ? "auth-title-login" : "auth-title-signup"}`}
+            className={`text-3xl font-semibold tracking-tight text-amber-300 ${mode === "in" ? "auth-title-login" : "auth-title-signup"}`}
           >
             {mode === "in" ? "Welcome back" : "Create account"}
           </h1>
