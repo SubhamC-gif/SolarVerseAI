@@ -425,6 +425,9 @@
 .auth-art-base {
   -webkit-mask-image: radial-gradient(circle var(--art-r) at 50% 37%, transparent calc(var(--art-r) - 1px), #000 var(--art-r));
   mask-image: radial-gradient(circle var(--art-r) at 50% 37%, transparent calc(var(--art-r) - 1px), #000 var(--art-r));
+  transform-origin: 50% 60%;
+  animation: auth-art-sway 12s ease-in-out infinite;
+  will-change: transform;
 }
 
 .auth-art-spin {
@@ -446,6 +449,11 @@
   to { transform: rotate(360deg); }
 }
 
+@keyframes auth-art-sway {
+  0%, 100% { transform: perspective(1200px) rotateY(-7deg); }
+  50% { transform: perspective(1200px) rotateY(7deg); }
+}
+
 @keyframes auth-title-drift {
   from { opacity: 0; transform: translate3d(0, -10px, 0); filter: blur(6px); }
   to { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
@@ -457,6 +465,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .auth-art-base,
   .auth-art-spin,
   .auth-title-login,
   .auth-title-signup {
