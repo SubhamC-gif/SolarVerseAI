@@ -82,22 +82,13 @@ function AuthPage() {
 
   return (
     <div
-      className={`relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-b from-background to-muted/20 px-4 py-10 sm:px-6 lg:px-8 ${mode === "in" ? "auth-login" : "auth-signup"}`}
+      className="dark relative flex min-h-screen items-center justify-center overflow-hidden bg-[#060d1c] px-4 py-10 sm:px-6 lg:justify-end lg:px-16"
     >
-      <div key={mode} className="auth-bg" aria-hidden>
-        {mode === "in" ? (
-          <>
-            <div className="auth-blob auth-blob-a" />
-            <div className="auth-blob auth-blob-b" />
-          </>
-        ) : (
-          <>
-            <div className="auth-rays" />
-            <div className="auth-sun" />
-          </>
-        )}
+      <div className="auth-art" aria-hidden>
+        <div className="auth-art-base" />
+        <div className="auth-art-spin" />
       </div>
-      <div className="relative z-10 w-full max-w-md space-y-8 bg-card p-8 rounded-2xl border shadow-xl transition-all duration-300">
+      <div className="relative z-10 w-full max-w-md space-y-8 rounded-2xl border border-amber-300/15 bg-[#0b1424]/85 p-8 text-amber-50 shadow-[0_0_60px_-15px_rgba(250,204,21,0.25)] backdrop-blur-md transition-all duration-300">
         <div className="flex flex-col items-center text-center space-y-2">
           <div className="mb-4 transform hover:scale-105 transition-transform duration-300">
             <Logo />
@@ -139,12 +130,12 @@ function AuthPage() {
               <div className="space-y-2">
                 <Label htmlFor="email">Email address</Label>
                 <div className="relative group">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-amber-300 transition-colors" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="name@example.com"
-                    className="pl-10 h-11 transition-all focus:ring-2 focus:ring-primary/20"
+                    className="pl-10 h-11 border-white/10 bg-white/5 text-amber-50 transition-all focus:border-amber-400/60 focus:ring-2 focus:ring-amber-400/30"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -156,18 +147,18 @@ function AuthPage() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="pw">Password</Label>
                   {mode === "in" && (
-                    <button type="button" className="text-xs text-primary hover:underline font-medium">
+                    <button type="button" className="text-xs text-amber-300 hover:underline font-medium">
                       Forgot password?
                     </button>
                   )}
                 </div>
                 <div className="relative group">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-amber-300 transition-colors" />
                   <Input
                     id="pw"
                     type="password"
                     placeholder="••••••••"
-                    className="pl-10 h-11 transition-all focus:ring-2 focus:ring-primary/20"
+                    className="pl-10 h-11 border-white/10 bg-white/5 text-amber-50 transition-all focus:border-amber-400/60 focus:ring-2 focus:ring-amber-400/30"
                     required
                     minLength={6}
                     value={password}
@@ -180,7 +171,7 @@ function AuthPage() {
 
             <Button
               type="submit"
-              className="w-full h-11 font-medium text-base transition-all active:scale-[0.98]"
+              className="w-full h-11 border-0 bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 font-medium text-base text-slate-900 shadow-[0_0_28px_-4px_rgba(250,204,21,0.6)] transition-all hover:brightness-110 active:scale-[0.98]"
               disabled={busy}
             >
               {busy ? (
@@ -198,7 +189,7 @@ function AuthPage() {
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">
+                <span className="bg-[#0b1424] px-2 text-amber-100/60">
                   New to SolarVerse?
                 </span>
               </div>
@@ -207,7 +198,7 @@ function AuthPage() {
             <Button
               type="button"
               variant="ghost"
-              className="w-full hover:bg-muted transition-colors"
+              className="w-full text-amber-200 hover:bg-amber-400/10 hover:text-amber-100 transition-colors"
               onClick={() => {
                 setMode(mode === "in" ? "up" : "in");
                 setSent(false);
@@ -220,8 +211,8 @@ function AuthPage() {
 
         <p className="text-center text-xs text-muted-foreground">
           By continuing, you agree to our{" "}
-          <button className="underline hover:text-primary">Terms of Service</button> and{" "}
-          <button className="underline hover:text-primary">Privacy Policy</button>.
+          <button className="underline hover:text-amber-300">Terms of Service</button> and{" "}
+          <button className="underline hover:text-amber-300">Privacy Policy</button>.
         </p>
       </div>
     </div>
