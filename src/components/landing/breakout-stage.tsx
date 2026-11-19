@@ -227,10 +227,14 @@ function CinematicStage() {
     };
 
     let frame = 0;
+    let lastP = -1;
     const update = () => {
       frame = 0;
       const total = section.offsetHeight - window.innerHeight;
-      render(total > 0 ? clamp01(-section.getBoundingClientRect().top / total) : 0);
+      const p = total > 0 ? clamp01(-section.getBoundingClientRect().top / total) : 0;
+      if (p === lastP) return;
+      lastP = p;
+      render(p);
     };
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(update);
@@ -328,7 +332,7 @@ function CinematicStage() {
                   {b.features.map((f, j) => (
                     <span
                       key={f}
-                      className="stage-chip rounded-full border border-stage-foreground/15 bg-stage-foreground/5 px-3 py-1 text-xs text-stage-foreground backdrop-blur-sm"
+                      className="stage-chip rounded-full border border-stage-foreground/15 bg-stage-foreground/10 px-3 py-1 text-xs text-stage-foreground"
                       style={{ animationDelay: `${150 + j * 90}ms` }}
                     >
                       {f}
@@ -337,7 +341,7 @@ function CinematicStage() {
                 </div>
               )}
               {i === 3 && (
-                <div className="pointer-events-auto mt-8 flex flex-wrap justify-center gap-3 rounded-2xl bg-stage/90 p-3 ring-1 ring-stage-foreground/10 backdrop-blur-md">
+                <div className="pointer-events-auto mt-8 flex flex-wrap justify-center gap-3 rounded-2xl bg-stage/95 p-3 ring-1 ring-stage-foreground/10">
                   <Button asChild size="lg">
                     <Link to="/advisor">
                       Calculate My Solar Potential <ArrowRight />

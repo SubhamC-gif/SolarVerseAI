@@ -14,20 +14,30 @@ export function Hero() {
     if (!section || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let frame = 0;
+    let height = section.offsetHeight;
+    let last = -1;
     const update = () => {
       frame = 0;
-      const p = Math.min(1, Math.max(0, window.scrollY / section.offsetHeight));
+      const p = Math.min(1, Math.max(0, window.scrollY / height));
+      if (p === last) return;
+      last = p;
       section.style.setProperty("--scroll", p.toFixed(4));
     };
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update);
     };
+    const onResize = () => {
+      height = section.offsetHeight;
+      onScroll();
+    };
 
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
     };
   }, []);
 
@@ -85,7 +95,7 @@ export function Hero() {
 
         <div className="hero-card justify-self-end self-end lg:self-center">
           <div className="fade-up [animation-delay:200ms]">
-            <div className="hero-float w-72 rounded-xl border bg-card/90 p-5 shadow-lift backdrop-blur">
+            <div className="hero-float w-72 rounded-xl border bg-card p-5 shadow-lift">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-forest">Live system</p>
                 <span className="relative flex h-2.5 w-2.5">
