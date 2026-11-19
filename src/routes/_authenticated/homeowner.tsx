@@ -134,7 +134,20 @@ function Overview({ onNavigate }: { onNavigate: (view: string) => void }) {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="live-bg fade-up relative overflow-hidden rounded-xl border bg-card p-4 shadow-soft">
+        <div className="flex flex-wrap items-center gap-3">
+          <Sun className="h-5 w-5 text-solar" style={{ animation: "sun-pulse 3s ease-in-out infinite" }} />
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="live-ping absolute inline-flex h-full w-full rounded-full bg-primary" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
+          </span>
+          <p className="text-sm font-medium text-forest">Live generation</p>
+          <p className="text-xs text-muted-foreground">{fmt(kw, 1)} kW system · {city}</p>
+        </div>
+        <div className="energy-flow mt-4 h-1.5 w-full rounded-full opacity-80" />
+      </div>
+
+      <div className="fade-up grid gap-4 md:grid-cols-4" style={{ animationDelay: "80ms" }}>
         <Metric
           label="System size"
           value={fmt(kw, 1)}
@@ -160,15 +173,15 @@ function Overview({ onNavigate }: { onNavigate: (view: string) => void }) {
         />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="fade-up grid gap-3 sm:grid-cols-2 lg:grid-cols-4" style={{ animationDelay: "160ms" }}>
         {QUICK_LINKS.map(({ icon: I, label, desc }) => (
           <button
             key={label}
             type="button"
             onClick={() => onNavigate(label)}
-            className="flex items-start gap-3 rounded-lg border bg-card p-4 text-left shadow-soft transition-colors hover:border-primary hover:bg-muted"
+            className="group flex items-start gap-3 rounded-lg border bg-card p-4 text-left shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-primary hover:bg-muted hover:shadow-lift"
           >
-            <I className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+            <I className="mt-0.5 h-5 w-5 shrink-0 text-primary transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" />
             <span className="min-w-0">
               <span className="block text-sm font-medium text-forest">{label}</span>
               <span className="mt-0.5 block text-xs text-muted-foreground">{desc}</span>
@@ -177,24 +190,26 @@ function Overview({ onNavigate }: { onNavigate: (view: string) => void }) {
         ))}
       </div>
 
-      <Panel title="Monthly generation estimate (kWh)">
-        <div className="h-72">
-          <ResponsiveContainer>
-            <BarChart data={series}>
-              <CartesianGrid vertical={false} stroke="var(--border)" />
-              <XAxis dataKey="month" tickLine={false} axisLine={false} fontSize={12} />
-              <YAxis tickLine={false} axisLine={false} fontSize={12} />
-              <Tooltip formatter={(v: number) => `${fmt(v)} kWh`} contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }} />
-              <Bar dataKey="expected" name="Monthly generation" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-        <p className="mt-2 text-xs text-muted-foreground">
-          {saved
-            ? `Based on your latest saved assessment for ${city}.`
-            : `Showing clearly-labelled sample values for ${city} — save an assessment to personalise this summary.`}
-        </p>
-      </Panel>
+      <div className="fade-up" style={{ animationDelay: "240ms" }}>
+        <Panel title="Monthly generation estimate (kWh)">
+          <div className="h-72">
+            <ResponsiveContainer>
+              <BarChart data={series}>
+                <CartesianGrid vertical={false} stroke="var(--border)" />
+                <XAxis dataKey="month" tickLine={false} axisLine={false} fontSize={12} />
+                <YAxis tickLine={false} axisLine={false} fontSize={12} />
+                <Tooltip formatter={(v: number) => `${fmt(v)} kWh`} contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }} />
+                <Bar dataKey="expected" name="Monthly generation" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {saved
+              ? `Based on your latest saved assessment for ${city}.`
+              : `Showing clearly-labelled sample values for ${city} — save an assessment to personalise this summary.`}
+          </p>
+        </Panel>
+      </div>
     </div>
   );
 }

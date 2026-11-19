@@ -44,7 +44,7 @@ export function SiteNav() {
     return () => window.removeEventListener("scroll", f);
   }, []);
   return (
-    <header className={cn("sticky top-0 z-50 transition-all duration-300", scrolled ? "border-b bg-background/85 backdrop-blur-md" : "bg-transparent")}>
+    <header className={cn("sticky top-0 z-50 transition-[background-color,border-color] duration-300", scrolled ? "border-b bg-background/85 backdrop-blur-md" : "bg-transparent")}>
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <Logo />
         <nav className="hidden items-center gap-8 md:flex">

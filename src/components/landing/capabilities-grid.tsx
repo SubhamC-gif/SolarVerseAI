@@ -91,12 +91,13 @@ function LiveBackground() {
         style={{ animation: "orb-drift 18s ease-in-out infinite reverse" }}
       />
       <div
-        className="absolute inset-0 opacity-40"
+        className="absolute -inset-14 opacity-40"
         style={{
           backgroundImage:
             "linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px)",
           backgroundSize: "56px 56px",
           animation: "grid-drift 12s linear infinite",
+          willChange: "transform",
         }}
       />
       <div

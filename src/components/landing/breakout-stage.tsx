@@ -72,6 +72,7 @@ const INTRO = {
   eyebrow: "One ecosystem",
   title: "One Platform. Endless Possibilities.",
   body: "Everything homeowners and solar operators need to plan, measure and protect solar power, connected in one intelligence layer.",
+  features: ["Rooftop planning", "Live plant monitoring", "Fault alerts", "Yield forecasts"],
 };
 
 const BEATS = [
@@ -80,16 +81,19 @@ const BEATS = [
     eyebrow: "Connected, then released",
     title: "Your Solar Data Deserves More Than a Dashboard.",
     body: "Each module detaches from the homepage and moves forward, from rooftop planning to plant fault detection.",
+    features: ["Detaches on scroll", "Plant fault detection"],
   },
   {
     eyebrow: "In focus",
     title: "Every module, sharper than before.",
     body: "Solar advisory, savings intelligence, live plant monitoring, fault detection, forecasting and maintenance planning.",
+    features: ["Solar advisor", "Savings & ROI", "Forecasting", "Maintenance"],
   },
   {
     eyebrow: "Start here",
     title: "Built for every roof and every megawatt.",
     body: "Estimate your home's solar potential, or run a full plant with predictive insight.",
+    features: ["Homeowner estimates", "Full plant operations"],
   },
 ];
 
@@ -109,13 +113,25 @@ function StaticShowcase() {
       aria-label="SolarVerse ecosystem overview"
       className="relative overflow-hidden bg-stage px-6 py-24 text-stage-foreground"
     >
-      <div className="mx-auto max-w-6xl">
+      <div aria-hidden className="stage-aurora pointer-events-none absolute inset-0" />
+      <div className="relative mx-auto max-w-6xl">
         <Reveal>
           <p className="text-xs uppercase tracking-[0.16em] text-stage-accent">{INTRO.eyebrow}</p>
           <h2 className="mt-3 max-w-2xl text-3xl font-light tracking-tight md:text-4xl">
             {INTRO.title}
           </h2>
           <p className="mt-3 max-w-xl text-base text-stage-muted">{INTRO.body}</p>
+          <div className="mt-6 flex flex-wrap gap-2">
+            {INTRO.features.map((f, j) => (
+              <span
+                key={f}
+                className="stage-chip rounded-full border border-stage-foreground/15 bg-stage-foreground/5 px-3 py-1 text-xs text-stage-foreground backdrop-blur-sm"
+                style={{ animationDelay: `${j * 90}ms` }}
+              >
+                {f}
+              </span>
+            ))}
+          </div>
         </Reveal>
         <Reveal className="mt-12" delay={80}>
           <ModuleView kind="home" large />
@@ -211,10 +227,14 @@ function CinematicStage() {
     };
 
     let frame = 0;
+    let lastP = -1;
     const update = () => {
       frame = 0;
       const total = section.offsetHeight - window.innerHeight;
-      render(total > 0 ? clamp01(-section.getBoundingClientRect().top / total) : 0);
+      const p = total > 0 ? clamp01(-section.getBoundingClientRect().top / total) : 0;
+      if (p === lastP) return;
+      lastP = p;
+      render(p);
     };
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(update);
@@ -244,7 +264,7 @@ function CinematicStage() {
       <div className="sticky top-0 h-screen overflow-hidden">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_20%_15%,rgba(40,123,255,0.14),transparent_70%),radial-gradient(50%_45%_at_85%_85%,rgba(135,85,255,0.14),transparent_70%)]"
+          className="stage-aurora pointer-events-none absolute inset-0"
         />
         <div
           ref={cameraRef}
@@ -301,14 +321,27 @@ function CinematicStage() {
               inert={beat !== i}
               className={cn(
                 "col-start-1 row-start-1 transition-all duration-700 ease-out",
-                beat === i ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0",
+                beat === i ? "translate-y-0 scale-100 opacity-100 blur-none" : "translate-y-3 scale-[0.98] opacity-0 blur-sm",
               )}
             >
               <p className="text-xs uppercase tracking-[0.16em] text-stage-accent">{b.eyebrow}</p>
               <h2 className="mt-3 text-3xl font-light tracking-tight md:text-4xl">{b.title}</h2>
               <p className="mx-auto mt-3 max-w-xl text-base text-stage-muted">{b.body}</p>
+              {beat === i && (
+                <div className="mt-6 flex flex-wrap justify-center gap-2">
+                  {b.features.map((f, j) => (
+                    <span
+                      key={f}
+                      className="stage-chip rounded-full border border-stage-foreground/15 bg-stage-foreground/10 px-3 py-1 text-xs text-stage-foreground"
+                      style={{ animationDelay: `${150 + j * 90}ms` }}
+                    >
+                      {f}
+                    </span>
+                  ))}
+                </div>
+              )}
               {i === 3 && (
-                <div className="pointer-events-auto mt-8 flex flex-wrap justify-center gap-3">
+                <div className="pointer-events-auto mt-8 flex flex-wrap justify-center gap-3 rounded-2xl bg-stage/95 p-3 ring-1 ring-stage-foreground/10">
                   <Button asChild size="lg">
                     <Link to="/advisor">
                       Calculate My Solar Potential <ArrowRight />
@@ -318,13 +351,24 @@ function CinematicStage() {
                     asChild
                     size="lg"
                     variant="outline"
-                    className="border-stage-foreground/20 bg-transparent text-stage-foreground hover:bg-stage-foreground/10"
+                    className="border-stage-foreground/20 bg-stage text-stage-foreground hover:bg-stage-foreground/10"
                   >
                     <Link to="/operator">Explore Solar Operators</Link>
                   </Button>
                 </div>
               )}
             </div>
+          ))}
+        </div>
+        <div className="pointer-events-none absolute bottom-8 left-1/2 z-30 flex -translate-x-1/2 gap-2">
+          {BEATS.map((_, i) => (
+            <span
+              key={i}
+              className={cn(
+                "h-1.5 rounded-full transition-all duration-500",
+                beat === i ? "w-8 bg-stage-accent" : "w-1.5 bg-stage-foreground/25",
+              )}
+            />
           ))}
         </div>
       </div>
