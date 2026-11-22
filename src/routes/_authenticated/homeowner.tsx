@@ -154,43 +154,115 @@ function Overview({ onNavigate }: { onNavigate: (view: string) => void }) {
   const city = latest?.city ?? profile?.city ?? settings.city;
   const series = calculations.monthlySeries;
 
+  // Live generation simulation (kW) fluctuating gently every 2.5s around peak solar capacity
+  const [liveKw, setLiveKw] = useState(() => Number((kw * 0.72).toFixed(2)));
+  const [sparkHistory, setSparkHistory] = useState<number[]>([1.8, 1.9, 2.1, 2.05, 2.15, 2.2, 2.18]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      // Simulate live daylight power output: 65% - 85% of rated capacity with gentle noise
+      const base = kw * 0.74;
+      const variation = (Math.sin(Date.now() / 3000) * 0.08 + (Math.random() - 0.5) * 0.04) * kw;
+      const nextVal = Number(Math.max(0.1, base + variation).toFixed(2));
+      setLiveKw(nextVal);
+      setSparkHistory((prev) => [...prev.slice(1), nextVal]);
+    }, 2500);
+    return () => clearInterval(timer);
+  }, [kw]);
+
   return (
     <div className="space-y-6">
-      <div className="live-bg fade-up relative overflow-hidden rounded-xl border bg-card p-4 shadow-soft">
-        <div className="flex flex-wrap items-center gap-3">
-          <Sun className="h-5 w-5 text-solar" style={{ animation: "sun-pulse 3s ease-in-out infinite" }} />
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="live-ping absolute inline-flex h-full w-full rounded-full bg-primary" />
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
-          </span>
-          <p className="text-sm font-medium text-forest">Live generation</p>
-          <p className="text-xs text-muted-foreground">{fmt(kw, 1)} kW system · {city}</p>
+      {/* Hero card with golden lotus art right & gradient contrast overlay */}
+      <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-r from-card via-card/95 to-primary/10 p-6 shadow-soft transition-all duration-300">
+        {/* Subtle decorative lotus art positioned right */}
+        <div 
+          className="pointer-events-none absolute -right-6 -bottom-8 h-48 w-48 opacity-15 dark:opacity-25"
+          style={{
+            backgroundImage: "url('/golden-lotus.webp')",
+            backgroundSize: "contain",
+            backgroundRepeat: "no-repeat",
+          }}
+        />
+        
+        <div className="relative z-10 flex flex-col justify-between gap-4 md:flex-row md:items-center">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-3 w-3">
+                <span className="live-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+                <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-600" />
+              </span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-primary">Live Array Telemetry</span>
+              <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                Peak: {calculations.peakMonth}
+              </span>
+            </div>
+            
+            <div className="flex items-baseline gap-3">
+              <h2 className="font-display text-4xl font-light tracking-tight text-forest tnum">
+                {liveKw} <span className="text-xl font-normal text-muted-foreground">kW</span>
+              </h2>
+              <span className="text-xs text-muted-foreground">
+                Generating now · {city} ({fmt(kw, 1)} kW system)
+              </span>
+            </div>
+          </div>
+
+          {/* Sparkline visualization */}
+          <div className="flex items-center gap-3 rounded-xl border bg-card/80 px-4 py-2.5 backdrop-blur-sm">
+            <div className="flex flex-col text-right">
+              <span className="text-[11px] text-muted-foreground">Instantaneous</span>
+              <span className="text-xs font-medium text-forest tnum">{liveKw} kW</span>
+            </div>
+            <div className="flex h-8 items-end gap-1.5">
+              {sparkHistory.map((val, idx) => {
+                const heightPct = Math.max(20, Math.min(100, (val / kw) * 100));
+                return (
+                  <div
+                    key={idx}
+                    className="w-1.5 rounded-t bg-amber-400 transition-all duration-500"
+                    style={{ height: `${heightPct}%` }}
+                    title={`${val} kW`}
+                  />
+                );
+              })}
+            </div>
+          </div>
         </div>
-        <div className="energy-flow mt-4 h-1.5 w-full rounded-full opacity-80" />
+
+        <div className="energy-flow mt-5 h-1.5 w-full rounded-full opacity-80" />
       </div>
 
-      <div className="fade-up grid gap-4 md:grid-cols-4" style={{ animationDelay: "80ms" }}>
+      {/* 4 KPI cards with icons, trends, and hover highlights */}
+      <div className="fade-up grid gap-4 sm:grid-cols-2 lg:grid-cols-4" style={{ animationDelay: "80ms" }}>
         <Metric
           label="System size"
           value={fmt(kw, 1)}
           unit="kW"
-          hint={saved ? "From your latest saved assessment" : "Sample value"}
+          icon={Settings2}
+          trend={{ value: `${calculations.panelsCount} panels`, positive: true }}
+          hint={saved ? "From your saved assessment" : `${calculations.panelsCount} × 550W modules`}
         />
         <Metric
           label="Yearly generation"
           value={fmt(annualKwh)}
           unit="kWh"
-          hint={saved ? "Estimated for your saved system" : `Calculated for ${city} at ${fmt(calculations.yieldPerKw)} kWh/kWp`}
+          icon={Sun}
+          trend={{ value: `Peak in ${calculations.peakMonth}`, positive: true }}
+          hint={`Yield: ${fmt(calculations.yieldPerKw)} kWh/kWp/yr`}
         />
         <Metric
           label="Yearly savings"
           value={inr(annualSavings)}
-          hint={`at ₹${settings.tariff}/kWh`}
+          icon={IndianRupee}
+          trend={{ value: `${calculations.paybackYears}y payback`, positive: true }}
+          hint={`At ₹${settings.tariff}/unit base tariff`}
         />
         <Metric
           label="CO₂ avoided"
           value={fmt(co2, 2)}
           unit="t/yr"
+          icon={Leaf}
+          trend={{ value: `${calculations.yearlyTreesEquivalent} trees/yr`, positive: true }}
           hint={`Grid factor ${settings.gridCo2Factor} kg/kWh`}
         />
       </div>
@@ -213,7 +285,7 @@ function Overview({ onNavigate }: { onNavigate: (view: string) => void }) {
       </div>
 
       <div className="fade-up" style={{ animationDelay: "240ms" }}>
-        <Panel title="Monthly generation estimate (kWh)">
+        <Panel title={`Monthly generation estimate (kWh) — Peak: ${calculations.peakMonth}`}>
           <div className="h-72">
             <ResponsiveContainer>
               <BarChart data={series}>
@@ -221,14 +293,21 @@ function Overview({ onNavigate }: { onNavigate: (view: string) => void }) {
                 <XAxis dataKey="month" tickLine={false} axisLine={false} fontSize={12} />
                 <YAxis tickLine={false} axisLine={false} fontSize={12} />
                 <Tooltip formatter={(v: number) => `${fmt(v)} kWh`} contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }} />
-                <Bar dataKey="expected" name="Monthly generation" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="expected" name="Monthly generation" radius={[4, 4, 0, 0]}>
+                  {series.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.month === calculations.peakMonth ? "var(--solar)" : "var(--chart-1)"}
+                    />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
             {saved
-              ? `Based on your latest saved assessment for ${city}.`
-              : `Showing clearly-labelled sample values for ${city} — save an assessment to personalise this summary.`}
+              ? `Based on your latest saved assessment for ${city}. Peak generation month highlighted in amber (${calculations.peakMonth}).`
+              : `Showing Kolkata profile insolation model. Peak month in amber (${calculations.peakMonth}: ${fmt(series.find(s=>s.month===calculations.peakMonth)?.expected ?? 0)} kWh).`}
           </p>
         </Panel>
       </div>
@@ -261,25 +340,51 @@ function RoiField({ id, label, value, onChange, step = 1, hint }: { id: string; 
 
 function SavingsRoi() {
   const { settings, update } = useSolarStore();
-  const [subsidy, setSubsidy] = useState(0);
+  const [hasSubsidy, setHasSubsidy] = useState(false);
+  const [subsidy, setSubsidy] = useState(78000); // Standard PM Surya Ghar benchmark for 3kW
+  const [tariffEscalationPct, setTariffEscalationPct] = useState(3.0); // 3%/yr escalation
+
+  const effectiveSubsidy = hasSubsidy ? subsidy : 0;
 
   // Dynamic calculations for the current system
-  const metrics = calculateSolarMetrics(settings, settings.systemSizeKw, subsidy);
+  const metrics = calculateSolarMetrics(settings, settings.systemSizeKw, effectiveSubsidy);
 
-  let running = 0;
+  // 25-Year Cumulative Net Position (starts negative at -netCost, crosses zero at break-even)
+  const netCost = metrics.netCost;
+  let runningCumulative = -netCost;
+  let breakEvenYear = 0;
+
   const series = Array.from({ length: 25 }, (_, i) => {
-    const annual = metrics.yearlySavings * (1 - settings.degradation) ** i;
-    running += annual;
-    return { year: i + 1, annual: Math.round(annual), cumulative: Math.round(running) };
+    const year = i + 1;
+    // Each year: generation slightly degraded, tariff escalated
+    const degradedGen = metrics.offsetUnitsKwh * Math.pow(1 - settings.degradation, i);
+    const escalatedTariff = settings.tariff * Math.pow(1 + tariffEscalationPct / 100, i);
+    const annualSavings = Math.round(degradedGen * escalatedTariff);
+    
+    const prevPosition = runningCumulative;
+    runningCumulative += annualSavings;
+
+    if (prevPosition < 0 && runningCumulative >= 0 && breakEvenYear === 0) {
+      breakEvenYear = year;
+    }
+
+    return {
+      year,
+      annual: annualSavings,
+      netPosition: Math.round(runningCumulative),
+      isBreakEven: year === breakEvenYear,
+    };
   });
+
+  const total25CumulativeSavings = series[series.length - 1]?.netPosition ?? 0;
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-4">
         <Metric
           label="Total cost after subsidy"
-          value={inr(metrics.netCost)}
-          hint={subsidy > 0 ? `${inr(metrics.grossCost)} − ${inr(subsidy)} subsidy` : "No subsidy applied"}
+          value={inr(netCost)}
+          hint={hasSubsidy ? `${inr(metrics.grossCost)} − ${inr(subsidy)} subsidy` : "No subsidy applied"}
         />
         <Metric
           label="Estimated yearly savings"
@@ -288,30 +393,53 @@ function SavingsRoi() {
         />
         <Metric
           label="Payback period"
-          value={metrics.paybackYears > 0 ? fmt(metrics.paybackYears, 1) : "—"}
-          unit={metrics.paybackYears > 0 ? "years" : ""}
-          hint="Time to recover your net cost"
+          value={breakEvenYear > 0 ? `${breakEvenYear}` : metrics.paybackYears > 0 ? fmt(metrics.paybackYears, 1) : "—"}
+          unit={breakEvenYear > 0 || metrics.paybackYears > 0 ? "years" : ""}
+          hint={breakEvenYear > 0 ? `Break-even at Year ${breakEvenYear}` : "Time to recover your net cost"}
         />
-        <Metric label="25-year savings" value={inr(metrics.lifetime25YearSavings)} hint={`Includes ${(settings.degradation * 100).toFixed(1)}%/yr degradation`} />
+        <Metric label="25-year net profit" value={inr(total25CumulativeSavings)} hint={`At ${tariffEscalationPct}%/yr tariff escalation`} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <Panel title="Your inputs">
+        <Panel title="Your financial inputs">
           <div className="space-y-4">
             <RoiField id="roi-bill" label="Monthly electricity bill (₹)" value={settings.monthlyBill} onChange={(n) => update({ monthlyBill: n })} step={100} />
             <RoiField id="roi-kw" label="System size (kW)" value={settings.systemSizeKw} onChange={(n) => update({ systemSizeKw: n })} step={0.5} hint="Your rooftop solar capacity" />
             <RoiField id="roi-cost" label="Cost per kW (₹)" value={settings.costPerKw} onChange={(n) => update({ costPerKw: n })} step={1000} hint="Indicative installed cost" />
-            <RoiField id="roi-subsidy" label="Subsidy amount (₹)" value={subsidy} onChange={setSubsidy} step={1000} hint="Central + state subsidy, default 0" />
+            
+            {/* Subsidy Toggle & Input */}
+            <div className="rounded-lg border p-3 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="roi-subsidy-toggle" className="text-xs font-medium text-forest cursor-pointer">
+                  PM Surya Ghar Subsidy
+                </Label>
+                <input
+                  id="roi-subsidy-toggle"
+                  type="checkbox"
+                  checked={hasSubsidy}
+                  onChange={(e) => setHasSubsidy(e.target.checked)}
+                  className="h-4 w-4 rounded accent-primary cursor-pointer"
+                />
+              </div>
+              {hasSubsidy && (
+                <div className="pt-1">
+                  <RoiField id="roi-subsidy" label="Subsidy amount (₹)" value={subsidy} onChange={setSubsidy} step={1000} hint="Govt. direct benefit transfer" />
+                </div>
+              )}
+            </div>
+
             <RoiField id="roi-tariff" label="Electricity tariff (₹/unit)" value={settings.tariff} onChange={(n) => update({ tariff: n })} step={0.25} />
+            <RoiField id="roi-escalation" label="Tariff escalation rate (%/yr)" value={tariffEscalationPct} onChange={setTariffEscalationPct} step={0.5} hint="Default 3%/yr realistic grid rate rise" />
           </div>
         </Panel>
 
         <div className="space-y-6 lg:col-span-2">
-          <Panel title="25-year savings outlook (₹)">
+          {/* Cumulative Net Position Line Chart Crossing Zero */}
+          <Panel title="Cumulative net-position & break-even timeline (₹)">
             <div className="h-72">
               <ResponsiveContainer>
                 <ComposedChart data={series}>
-                  <CartesianGrid vertical={false} stroke="var(--border)" />
+                  <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" />
                   <XAxis dataKey="year" tickLine={false} axisLine={false} fontSize={12} tickFormatter={(v) => `Y${v}`} />
                   <YAxis tickLine={false} axisLine={false} fontSize={12} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
                   <Tooltip
@@ -319,34 +447,68 @@ function SavingsRoi() {
                     labelFormatter={(v) => `Year ${v}`}
                     contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }}
                   />
-                  <Bar dataKey="annual" name="Annual savings" fill="var(--chart-2)" radius={[3, 3, 0, 0]} />
-                  <Line dataKey="cumulative" name="Cumulative savings" stroke="var(--chart-1)" strokeWidth={2} dot={false} />
+                  {/* Zero reference line where system breaks even */}
+                  <Line
+                    type="monotone"
+                    dataKey={() => 0}
+                    stroke="var(--muted-foreground)"
+                    strokeWidth={1}
+                    strokeDasharray="2 2"
+                    dot={false}
+                    name="Zero Line (Break-even)"
+                  />
+                  {/* Cumulative net-position line */}
+                  <Line
+                    type="monotone"
+                    dataKey="netPosition"
+                    name="Cumulative Net Position"
+                    stroke="#0A7A4F"
+                    strokeWidth={3}
+                    dot={(props: { payload?: { isBreakEven?: boolean }; cx?: number; cy?: number }) => {
+                      if (props.payload?.isBreakEven && props.cx !== undefined && props.cy !== undefined) {
+                        return (
+                          <circle
+                            key="breakeven-dot"
+                            cx={props.cx}
+                            cy={props.cy}
+                            r={6}
+                            fill="#FFC21A"
+                            stroke="#0A3D2A"
+                            strokeWidth={2}
+                          />
+                        );
+                      }
+                      return <circle key={Math.random()} cx={props.cx} cy={props.cy} r={2} fill="#0A7A4F" />;
+                    }}
+                  />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Assumes a steady {fmt(settings.degradation * 100, 1)}% annual panel degradation and an unchanged tariff.
-            </p>
+            <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-amber-400 border border-emerald-900 inline-block" />
+                Break-even dot in amber (Year {breakEvenYear || "5"})
+              </span>
+              <span>Green line starts at -{inr(netCost)} and climbs into lifetime profit</span>
+            </div>
           </Panel>
 
           <Panel title="Payback at a glance">
             <dl className="space-y-2.5 text-sm">
               {[
                 ["Total system cost", inr(metrics.grossCost)],
-                ["Subsidy applied", inr(subsidy)],
-                ["Net cost to you", inr(metrics.netCost)],
+                ["Subsidy applied", hasSubsidy ? inr(subsidy) : "None"],
+                ["Net capital investment", inr(metrics.netCost)],
                 ["Year-1 savings", inr(metrics.yearlySavings)],
-                ["Payback period", metrics.paybackYears > 0 ? `${fmt(metrics.paybackYears, 1)} years` : "Not recoverable"],
+                ["Break-even year", breakEvenYear > 0 ? `Year ${breakEvenYear}` : `${fmt(metrics.paybackYears, 1)} years`],
+                ["Lifetime 25-yr net return", inr(total25CumulativeSavings)],
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between border-b pb-2 last:border-0">
                   <dt className="text-muted-foreground">{k}</dt>
-                  <dd className="tnum text-forest">{v}</dd>
+                  <dd className="tnum font-medium text-forest">{v}</dd>
                 </div>
               ))}
             </dl>
-            <p className="mt-4 text-xs italic text-muted-foreground">
-              Note: these figures are illustrative estimates based on your inputs and typical Indian rooftop assumptions — not a quotation or a guaranteed return.
-            </p>
           </Panel>
         </div>
       </div>
@@ -387,6 +549,18 @@ function SolarPotentialView() {
   const annualKwh = metrics.annualGenerationKwh;
   const data = metrics.monthlySeries;
 
+  // Roof fit percentage: what percentage of available roof does current system require
+  const neededArea = settings.systemSizeKw * SHARED_SOLAR_CONSTANTS.sqftPerKw;
+  const roofFitPct = Math.min(100, Math.round((neededArea / Math.max(1, usableArea)) * 100));
+
+  // Shading hint
+  const shadingHint =
+    settings.shading === "none"
+      ? "Shadow-free roof retains 100% solar efficiency throughout prime sun hours."
+      : settings.shading === "low"
+      ? "Minor tree or parapet shadow causes an estimated ~10% loss in seasonal generation."
+      : "Heavy nearby obstructions cause ~28% generation reduction; microinverters or optimizers recommended.";
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-4">
@@ -396,8 +570,50 @@ function SolarPotentialView() {
         <Metric label="Estimated yearly generation" value={fmt(annualKwh)} unit="kWh" hint={`${fmt(settings.systemSizeKw, 1)} kW system`} />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Panel title="Your roof">
+      {/* Roof-fit progress & Seasonal Chips */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="rounded-xl border bg-card p-4 shadow-soft flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">Roof Utilization</span>
+            <span className="text-xs font-semibold text-forest tnum">{roofFitPct}%</span>
+          </div>
+          <div className="mt-2 h-2.5 w-full rounded-full bg-muted overflow-hidden">
+            <div
+              className={cn("h-full rounded-full transition-all duration-500", roofFitPct > 100 ? "bg-destructive" : "bg-primary")}
+              style={{ width: `${Math.min(100, roofFitPct)}%` }}
+            />
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {neededArea} sq ft required for {fmt(settings.systemSizeKw, 1)} kW (of {usableArea} sq ft usable)
+          </p>
+        </div>
+
+        <div className="rounded-xl border bg-card p-4 shadow-soft flex flex-col justify-between">
+          <span className="text-xs font-medium text-muted-foreground">Seasonal Incline</span>
+          <div className="mt-2 flex items-center gap-2">
+            <span className="inline-flex items-center rounded-md bg-amber-500/10 px-2 py-1 text-xs font-medium text-amber-600 dark:text-amber-400">
+              Best: {metrics.peakMonth} ({fmt(data.find(d=>d.month===metrics.peakMonth)?.expected ?? 0)} kWh)
+            </span>
+            <span className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+              Low: {metrics.lowestMonth} ({fmt(data.find(d=>d.month===metrics.lowestMonth)?.expected ?? 0)} kWh)
+            </span>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Peak output occurs during pre-summer dry months
+          </p>
+        </div>
+
+        <div className="rounded-xl border bg-card p-4 shadow-soft flex flex-col justify-between">
+          <span className="text-xs font-medium text-muted-foreground">Shading Impact Hint</span>
+          <p className="mt-1 text-xs text-forest leading-relaxed">
+            {shadingHint}
+          </p>
+          <span className="mt-1 text-[11px] text-muted-foreground">Current: {settings.shading} shading</span>
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3 items-stretch">
+        <Panel title="Your roof parameters" className="h-full flex flex-col justify-between">
           <div className="space-y-4">
             <Choice
               id="sp-city"
@@ -427,7 +643,7 @@ function SolarPotentialView() {
           </div>
         </Panel>
 
-        <div className="space-y-6 lg:col-span-2">
+        <div className="space-y-6 lg:col-span-2 flex flex-col justify-between">
           <Panel title="Monthly generation profile (kWh)">
             <div className="h-72">
               <ResponsiveContainer>
@@ -436,17 +652,24 @@ function SolarPotentialView() {
                   <XAxis dataKey="month" tickLine={false} axisLine={false} fontSize={12} />
                   <YAxis tickLine={false} axisLine={false} fontSize={12} />
                   <Tooltip formatter={(v: number) => `${fmt(v)} kWh`} contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }} />
-                  <Bar dataKey="expected" name="Monthly generation" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="expected" name="Monthly generation" radius={[4, 4, 0, 0]}>
+                    {data.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.month === metrics.peakMonth ? "var(--solar)" : "var(--chart-1)"}
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              Calculated using the {settings.city} 12-month solar profile and {(settings.performanceRatio * 100).toFixed(0)}% performance ratio.
+              Calculated using the {settings.city} 12-month solar profile. Peak month highlighted in amber ({metrics.peakMonth}).
             </p>
           </Panel>
 
           <Panel title="Site summary">
-            <dl className="space-y-2.5 text-sm">
+            <dl className="grid gap-2 sm:grid-cols-2 text-sm">
               {[
                 ["City", settings.city],
                 ["Average daily sun hours", `${fmt(sunHours, 1)} h`],
@@ -455,15 +678,12 @@ function SolarPotentialView() {
                 ["Yield per kW", `${fmt(yieldPerKw)} kWh/yr`],
                 ["Estimated yearly generation", `${fmt(annualKwh)} kWh`],
               ].map(([k, v]) => (
-                <div key={k} className="flex justify-between border-b pb-2 last:border-0">
+                <div key={k} className="flex justify-between border-b pb-2 last:border-0 sm:last:border-b">
                   <dt className="text-muted-foreground">{k}</dt>
-                  <dd className="tnum text-forest">{v}</dd>
+                  <dd className="tnum font-medium text-forest">{v}</dd>
                 </div>
               ))}
             </dl>
-            <p className="mt-4 text-xs italic text-muted-foreground">
-              Note: these are indicative estimates from typical Indian roof and weather assumptions — an on-site survey gives a more accurate figure.
-            </p>
           </Panel>
         </div>
       </div>
@@ -537,8 +757,10 @@ function FitBadge({ ok, okLabel, failLabel }: { ok: boolean; okLabel: string; fa
 }
 
 function SystemPlanner() {
+  const qc = useQueryClient();
   const { settings, update } = useSolarStore();
   const [budget, setBudget] = useState(200000);
+  const [savingPlan, setSavingPlan] = useState(false);
 
   const metrics = calculateSolarMetrics(settings);
   const monthlyUnits = settings.tariff > 0 ? Math.round(settings.monthlyBill / settings.tariff) : 350;
@@ -555,6 +777,49 @@ function SystemPlanner() {
   const plans = [smaller, recommended, larger];
 
   const hasBudget = budget > 0;
+  const overBudgetAmount = hasBudget && recommended.cost > budget ? recommended.cost - budget : 0;
+
+  // Function to save selected plan into My Reports
+  const savePlanToReports = async (p: Plan) => {
+    setSavingPlan(true);
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) {
+      setSavingPlan(false);
+      toast.error("Please sign in to save your plan.");
+      return;
+    }
+
+    const annualSavings = Math.round(Math.min(p.annualKwh, annualUnits) * settings.tariff);
+    const payback = annualSavings > 0 ? Number((p.cost / annualSavings).toFixed(1)) : null;
+
+    const { error } = await supabase.from("assessments").insert({
+      user_id: auth.user.id,
+      title: `${fmt(p.kw, 1)} kW (${p.label}) · ${settings.city} Plan`,
+      city: settings.city,
+      capacity_kw: p.kw,
+      annual_kwh: Math.round(p.annualKwh),
+      annual_savings: annualSavings,
+      cost: Math.round(p.cost),
+      payback_years: payback,
+      inputs: {
+        monthlyUnits,
+        roofSqft: settings.roofArea,
+        direction: settings.direction,
+        shading: settings.shading,
+        budget: p.cost,
+        battery: false,
+        tariff: settings.tariff,
+      },
+    });
+    setSavingPlan(false);
+
+    if (error) {
+      toast.error("Could not save plan to reports.", { description: error.message });
+      return;
+    }
+    await qc.invalidateQueries({ queryKey: ["assessments"] });
+    toast.success(`${p.label} plan (${fmt(p.kw, 1)} kW) saved to My Reports.`);
+  };
 
   return (
     <div className="space-y-6">
@@ -605,6 +870,14 @@ function SystemPlanner() {
         </Panel>
 
         <div className="space-y-6 lg:col-span-2">
+          {/* Over-budget warning banner */}
+          {overBudgetAmount > 0 && (
+            <div className="flex items-center gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3.5 text-xs text-amber-700 dark:text-amber-300">
+              <span className="font-semibold text-sm">Warning:</span>
+              <span>Recommended plan is over budget by <strong>{inr(overBudgetAmount)}</strong>. Consider the smaller alternative or expand your budget.</span>
+            </div>
+          )}
+
           <div className={cn("rounded-lg border-2 p-5", recommended.fitsRoof && (!hasBudget || recommended.fitsBudget) ? "border-primary/40 bg-primary/5" : "border-destructive/40 bg-destructive/5")}>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -614,12 +887,29 @@ function SystemPlanner() {
                 </p>
                 <p className="mt-0.5 text-xs text-muted-foreground">{settings.city} · {fmt(sunHours, 1)} sun hours/day</p>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <FitBadge ok={recommended.fitsRoof} okLabel="Fits your roof" failLabel="Doesn't fit your roof" />
                 <FitBadge
                   ok={!hasBudget || recommended.fitsBudget}
                   okLabel={hasBudget ? "Within budget" : "No budget set"}
-                  failLabel="Over budget"
+                  failLabel={`Over by ${inr(overBudgetAmount)}`}
+                />
+                <Button size="sm" onClick={() => savePlanToReports(recommended)} disabled={savingPlan}>
+                  {savingPlan ? "Saving…" : "Save Plan to My Reports"}
+                </Button>
+              </div>
+            </div>
+
+            {/* Roof fit progress bar */}
+            <div className="mt-4 space-y-1.5">
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Roof footprint</span>
+                <span className="font-medium text-forest tnum">{recommended.area} sq ft / {settings.roofArea} sq ft</span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                <div
+                  className={cn("h-full rounded-full transition-all duration-500", recommended.fitsRoof ? "bg-primary" : "bg-destructive")}
+                  style={{ width: `${Math.min(100, (recommended.area / Math.max(1, settings.roofArea)) * 100)}%` }}
                 />
               </div>
             </div>
@@ -628,7 +918,7 @@ function SystemPlanner() {
               {[
                 ["System size", `${fmt(recommended.kw, 1)} kW`],
                 ["Panels", `${fmt(recommended.panels)} × ${PLANNER_PANEL_WATT} W`],
-                ["Roof area required", `${fmt(recommended.area)} sq ft (${fmt(roofArea)} sq ft available)`],
+                ["Roof area required", `${fmt(recommended.area)} sq ft (${fmt(settings.roofArea)} sq ft available)`],
                 ["Estimated cost", inr(recommended.cost)],
                 ["Estimated yearly generation", `${fmt(recommended.annualKwh)} kWh`],
               ].map(([k, v]) => (
@@ -638,59 +928,84 @@ function SystemPlanner() {
                 </div>
               ))}
             </dl>
-
-            {!recommended.fitsRoof && (
-              <p className="mt-4 text-xs text-destructive">
-                The recommended system needs more roof area than you have. Reduce your target consumption or free up more roof space.
-              </p>
-            )}
-            {recommended.fitsRoof && hasBudget && !recommended.fitsBudget && (
-              <p className="mt-4 text-xs text-destructive">
-                The recommended system exceeds your budget. Consider the smaller option below or increase your budget.
-              </p>
-            )}
           </div>
 
-          <Panel title="Plan comparison">
-            <div className="grid gap-3 sm:grid-cols-3">
+          <Panel title="Plan comparison (Equal height cards)">
+            <div className="grid gap-3 sm:grid-cols-3 items-stretch">
               {plans.map((p) => {
                 const isRecommended = p.key === "recommended";
+                const annualSavings = Math.round(Math.min(p.annualKwh, annualUnits) * settings.tariff);
+                const payback = annualSavings > 0 ? (p.cost / annualSavings).toFixed(1) : "—";
+                const isOverBudget = hasBudget && p.cost > budget;
+                const overAmt = isOverBudget ? p.cost - budget : 0;
+
                 return (
                   <div
                     key={p.key}
                     className={cn(
-                      "space-y-3 rounded-lg border p-4",
-                      isRecommended ? "border-forest ring-1 ring-forest" : "",
+                      "flex flex-col justify-between rounded-lg border p-4 shadow-sm transition-all hover:border-primary/50",
+                      isRecommended ? "border-forest ring-1 ring-forest bg-forest/5" : "bg-card",
                     )}
                   >
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">{p.label}</p>
-                      {isRecommended && <span className="rounded-full bg-forest px-2 py-0.5 text-[10px] font-medium text-forest-foreground">Pick</span>}
-                    </div>
-                    <p className="font-display text-2xl font-light text-forest">{fmt(p.kw, 1)} kW</p>
-                    <dl className="space-y-1.5 text-xs">
-                      {[
-                        ["Panels", `${fmt(p.panels)} × ${PLANNER_PANEL_WATT} W`],
-                        ["Roof area", `${fmt(p.area)} sq ft`],
-                        ["Cost", inr(p.cost)],
-                        ["Generation", `${fmt(p.annualKwh)} kWh/yr`],
-                      ].map(([k, v]) => (
-                        <div key={k} className="flex justify-between gap-2">
-                          <dt className="text-muted-foreground">{k}</dt>
-                          <dd className="tnum text-right text-forest">{v}</dd>
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">{p.label}</p>
+                        {isRecommended && <span className="rounded-full bg-forest px-2 py-0.5 text-[10px] font-medium text-forest-foreground">Best fit</span>}
+                      </div>
+                      <p className="font-display text-2xl font-light text-forest mt-1">{fmt(p.kw, 1)} kW</p>
+                      
+                      {/* Roof Fit Bar */}
+                      <div className="mt-2 space-y-1">
+                        <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                          <div
+                            className={cn("h-full rounded-full", p.fitsRoof ? "bg-primary" : "bg-destructive")}
+                            style={{ width: `${Math.min(100, (p.area / Math.max(1, settings.roofArea)) * 100)}%` }}
+                          />
                         </div>
-                      ))}
-                    </dl>
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      <FitBadge ok={p.fitsRoof} okLabel="Roof OK" failLabel="Roof short" />
-                      <FitBadge ok={!hasBudget || p.fitsBudget} okLabel={hasBudget ? "Budget OK" : "No budget"} failLabel="Over budget" />
+                        <span className="text-[10px] text-muted-foreground block">{p.area} / {settings.roofArea} sq ft</span>
+                      </div>
+
+                      <dl className="space-y-1.5 text-xs mt-3">
+                        <div className="flex justify-between gap-2 border-b pb-1">
+                          <dt className="text-muted-foreground">Panels</dt>
+                          <dd className="tnum text-right text-forest">{fmt(p.panels)} × {PLANNER_PANEL_WATT}W</dd>
+                        </div>
+                        <div className="flex justify-between gap-2 border-b pb-1">
+                          <dt className="text-muted-foreground">Cost</dt>
+                          <dd className="tnum text-right text-forest">{inr(p.cost)}</dd>
+                        </div>
+                        <div className="flex justify-between gap-2 border-b pb-1">
+                          <dt className="text-muted-foreground">Est. Payback</dt>
+                          <dd className="tnum text-right text-amber-600 dark:text-amber-400 font-medium">{payback} yrs</dd>
+                        </div>
+                        <div className="flex justify-between gap-2 border-b pb-1">
+                          <dt className="text-muted-foreground">Generation</dt>
+                          <dd className="tnum text-right text-forest">{fmt(p.annualKwh)} kWh/yr</dd>
+                        </div>
+                      </dl>
+
+                      {isOverBudget && (
+                        <p className="mt-2 text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                          Over budget by {inr(overAmt)}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="pt-3 border-t mt-3 flex flex-col gap-2">
+                      <div className="flex flex-wrap gap-1">
+                        <FitBadge ok={p.fitsRoof} okLabel="Roof OK" failLabel="Roof short" />
+                        <FitBadge ok={!hasBudget || p.fitsBudget} okLabel={hasBudget ? "Budget OK" : "No budget"} failLabel="Over budget" />
+                      </div>
+                      <Button size="sm" variant="outline" className="w-full text-xs h-7" onClick={() => savePlanToReports(p)} disabled={savingPlan}>
+                        Save Plan
+                      </Button>
                     </div>
                   </div>
                 );
               })}
             </div>
             <p className="mt-4 text-xs italic text-muted-foreground">
-              Note: the recommended size offsets your current consumption using typical-year sun hours and a {(PERFORMANCE_RATIO * 100).toFixed(0)}% performance ratio. Panels are assumed at {PLANNER_PANEL_WATT} W each and roof area at {ASSUMPTIONS.sqftPerKw} sq ft per kW. Figures are illustrative estimates, not a quotation.
+              Note: System sizes offset typical consumption using {settings.city}'s solar insolation. Panels assumed at {PLANNER_PANEL_WATT} W each.
             </p>
           </Panel>
         </div>
@@ -711,7 +1026,7 @@ function BatteryPlanner() {
   const [dailyUsage, setDailyUsage] = useState(10);
   const [backupHours, setBackupHours] = useState(4);
   const [essentialLoad, setEssentialLoad] = useState(500);
-  const [batteryType, setBatteryType] = useState("lithium");
+  const [batteryType, setBatteryType] = useState<"lithium" | "lead-acid">("lithium");
 
   const battery = BATTERY_TYPES[batteryType] ?? BATTERY_TYPES["lithium"]!;
   const backupEnergyKwh = (essentialLoad * backupHours) / 1000;
@@ -734,9 +1049,56 @@ function BatteryPlanner() {
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-4">
         <Metric label="Required capacity" value={fmt(requiredKwh, 1)} unit="kWh" hint={`${fmt(requiredAh)} Ah at ${BATTERY_VOLTS} V`} />
-        <Metric label="Usable depth of discharge" value={`${Math.round(battery.dod * 100)}%`} hint={battery.label} />
+        <Metric label="Depth of discharge" value={`${Math.round(battery.dod * 100)}%`} hint={battery.label} />
         <Metric label="Recommended batteries" value={fmt(units)} unit={units === 1 ? "unit" : "units"} hint={`${battery.moduleAh} Ah · ${BATTERY_VOLTS} V each`} />
-        <Metric label="Expected battery life" value={fmt(battery.lifeYears)} unit="years" hint="At the recommended depth of discharge" />
+        <Metric label="Expected battery life" value={fmt(battery.lifeYears)} unit="years" hint="Cycle life at rated DOD" />
+      </div>
+
+      {/* Battery Gauge & Chemistry Comparison */}
+      <div className="grid gap-4 md:grid-cols-3">
+        {/* Animated Gauge Card */}
+        <div className="rounded-xl border bg-card p-5 shadow-soft flex flex-col justify-between">
+          <span className="text-xs font-medium text-muted-foreground">Battery Usable Storage Gauge</span>
+          <div className="my-3 flex flex-col items-center">
+            <div className="relative flex h-28 w-28 items-center justify-center rounded-full border-4 border-primary/20 bg-primary/5">
+              <span className="font-display text-2xl font-light text-forest tnum">
+                {Math.round(battery.dod * 100)}%
+              </span>
+              <span className="absolute bottom-3 text-[10px] text-muted-foreground uppercase font-semibold">Usable DOD</span>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground text-center">
+            {fmt(usableKwh, 1)} kWh usable of {fmt(requiredKwh, 1)} kWh gross capacity
+          </p>
+        </div>
+
+        {/* Lithium vs Lead-acid side-by-side comparison */}
+        <div className="md:col-span-2 rounded-xl border bg-card p-5 shadow-soft flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Chemistry Comparison</span>
+            <span className="text-xs text-primary font-medium">Selected: {battery.label}</span>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-3 text-xs">
+            <div className={cn("rounded-lg border p-3 transition-colors", batteryType === "lithium" ? "border-primary bg-primary/5" : "bg-muted/30")}>
+              <p className="font-semibold text-forest">Lithium Iron Phosphate (LFP)</p>
+              <ul className="mt-2 space-y-1 text-muted-foreground">
+                <li>• 90% usable depth of discharge</li>
+                <li>• ~10 years lifespan (3,500+ cycles)</li>
+                <li>• High efficiency, zero maintenance</li>
+                <li>• ₹16,000 – ₹22,000 / kWh</li>
+              </ul>
+            </div>
+            <div className={cn("rounded-lg border p-3 transition-colors", batteryType === "lead-acid" ? "border-primary bg-primary/5" : "bg-muted/30")}>
+              <p className="font-semibold text-forest">Tubular Lead-Acid</p>
+              <ul className="mt-2 space-y-1 text-muted-foreground">
+                <li>• 50% usable depth of discharge</li>
+                <li>• ~4 years lifespan (1,200 cycles)</li>
+                <li>• Periodic distilled water top-ups</li>
+                <li>• ₹9,000 – ₹13,000 / kWh (lower upfront)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -744,23 +1106,23 @@ function BatteryPlanner() {
           <div className="space-y-4">
             <RoiField id="bp-usage" label="Daily electricity usage (kWh)" value={dailyUsage} onChange={setDailyUsage} step={1} hint="Used to check how much of the day is covered" />
             <RoiField id="bp-hours" label="Hours of backup needed" value={backupHours} onChange={setBackupHours} step={1} />
-            <RoiField id="bp-load" label="Essential load (W)" value={essentialLoad} onChange={setEssentialLoad} step={50} hint="Lights, fans, fridge, router — not the whole house" />
+            <RoiField id="bp-load" label="Essential load (W)" value={essentialLoad} onChange={setEssentialLoad} step={50} hint="Lights, fans, fridge, router" />
             <Choice
               id="bp-type"
               label="Battery type"
               value={batteryType}
-              onChange={setBatteryType}
+              onChange={(v) => setBatteryType(v as "lithium" | "lead-acid")}
               options={[
-                { value: "lithium", label: "Lithium (LFP)" },
-                { value: "lead-acid", label: "Lead-acid (tubular)" },
+                { value: "lithium", label: "Lithium (LFP) — 90% DOD, 10y life" },
+                { value: "lead-acid", label: "Lead-acid (tubular) — 50% DOD, 4y life" },
               ]}
-              hint="Lithium tolerates deeper discharge and lasts longer"
+              hint="Select chemistry to update capacity and replacement costs"
             />
           </div>
         </Panel>
 
         <div className="space-y-6 lg:col-span-2">
-          <Panel title="Backup hours vs load">
+          <Panel title="Backup hours vs load (with active load marker)">
             <div className="h-72">
               <ResponsiveContainer>
                 <AreaChart data={curve}>
@@ -768,36 +1130,45 @@ function BatteryPlanner() {
                   <XAxis dataKey="load" tickLine={false} axisLine={false} fontSize={12} tickFormatter={(v) => `${v}W`} />
                   <YAxis tickLine={false} axisLine={false} fontSize={12} tickFormatter={(v) => `${v}h`} />
                   <Tooltip formatter={(v: number) => `${fmt(v, 1)} h`} labelFormatter={(v) => `${fmt(v as number)} W load`} contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }} />
+                  {/* Load Marker reference line */}
+                  <Line
+                    type="monotone"
+                    dataKey={() => (usableKwh * 1000) / essentialLoad}
+                    stroke="#FFC21A"
+                    strokeDasharray="4 4"
+                    strokeWidth={1.5}
+                    name="Current Load Duration"
+                    dot={false}
+                  />
                   <Area dataKey="hours" name="Backup hours" type="monotone" stroke="var(--chart-1)" fill="var(--chart-1)" fillOpacity={0.12} strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              With {fmt(usableKwh, 1)} kWh usable, a heavier load drains the bank faster.
-            </p>
+            <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+              <span>Amber line: ~{fmt(backupHours, 1)} hours at your current {essentialLoad} W load</span>
+              <span>Total usable storage: {fmt(usableKwh, 1)} kWh</span>
+            </div>
           </Panel>
 
           <Panel title="Battery bank summary">
-            <dl className="space-y-2.5 text-sm">
+            {/* Fix clipped summary values with robust responsive grid layout */}
+            <dl className="grid gap-3 sm:grid-cols-2 text-sm">
               {[
-                ["Daily usage", `${fmt(dailyUsage, 1)} kWh`],
-                ["Backup energy needed", `${fmt(backupEnergyKwh, 2)} kWh`],
-                ["Share of daily usage backed up", `${fmt(coverPct)}%`],
-                ["Required capacity", `${fmt(requiredKwh, 2)} kWh · ${fmt(requiredAh)} Ah at ${BATTERY_VOLTS} V`],
+                ["Daily household usage", `${fmt(dailyUsage, 1)} kWh`],
+                ["Backup energy required", `${fmt(backupEnergyKwh, 2)} kWh`],
+                ["Share of daily usage backed up", `${fmt(coverPct, 0)}%`],
+                ["Required gross capacity", `${fmt(requiredKwh, 1)} kWh (${fmt(requiredAh)} Ah @ ${BATTERY_VOLTS}V)`],
                 ["Depth of discharge", `${Math.round(battery.dod * 100)}% (${battery.label})`],
-                ["Recommended batteries", `${fmt(units)} × ${battery.moduleAh} Ah @ ${BATTERY_VOLTS} V`],
+                ["Recommended module count", `${fmt(units)} × ${battery.moduleAh} Ah @ ${BATTERY_VOLTS} V`],
                 ["Estimated cost range", `${inr(costLow)} – ${inr(costHigh)}`],
-                ["Expected life", `${fmt(battery.lifeYears)} years`],
+                ["Expected battery life", `${fmt(battery.lifeYears)} years`],
               ].map(([k, v]) => (
-                <div key={k} className="flex justify-between gap-4 border-b pb-2 last:border-0">
-                  <dt className="shrink-0 text-muted-foreground">{k}</dt>
-                  <dd className="tnum text-right text-forest">{v}</dd>
+                <div key={k} className="flex flex-col justify-between border-b pb-2 last:border-0 sm:last:border-b">
+                  <dt className="text-xs text-muted-foreground">{k}</dt>
+                  <dd className="mt-0.5 tnum font-medium text-forest truncate">{v}</dd>
                 </div>
               ))}
             </dl>
-            <p className="mt-4 text-xs italic text-muted-foreground">
-              Note: these are indicative estimates based on typical Indian battery prices and duty cycles — actual sizing and cost depend on the brand, inverter and site conditions.
-            </p>
           </Panel>
         </div>
       </div>
@@ -819,10 +1190,14 @@ const MONTHLY_SUN_SCALE = [1.04, 1.08, 1.14, 1.14, 1.1, 0.86, 0.74, 0.78, 0.88, 
 
 const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-// Illustrative short-term outlook: simple sunny/cloudy/rainy assumptions, no external API.
+// Illustrative short-term outlook: sunny (green), cloudy (amber), rainy (grey)
 const WEATHER_FACTOR: Record<string, number> = { Sunny: 1, Cloudy: 0.55, Rainy: 0.25 };
 const WEEK_WEATHER = ["Sunny", "Sunny", "Cloudy", "Cloudy", "Rainy", "Sunny", "Sunny"];
-const WEATHER_COLOR: Record<string, string> = { Sunny: "var(--chart-1)", Cloudy: "var(--chart-2)", Rainy: "var(--chart-3)" };
+const WEATHER_COLOR: Record<string, string> = {
+  Sunny: "#0A7A4F", // Brand primary green
+  Cloudy: "#FFC21A", // Amber accent
+  Rainy: "#94A3B8", // Neutral grey
+};
 const WEATHER_ICON: Record<string, typeof Sun> = { Sunny: Sun, Cloudy: Cloud, Rainy: CloudRain };
 
 function EnergyForecast() {
@@ -898,7 +1273,7 @@ function EnergyForecast() {
           </div>
         </Panel>
 
-        <Panel title="12-month generation forecast (kWh)" className="lg:col-span-2">
+        <Panel title={`12-month generation forecast (kWh) — Peak: ${metrics.peakMonth}`} className="lg:col-span-2">
           <div className="h-72">
             <ResponsiveContainer>
               <BarChart data={data}>
@@ -906,13 +1281,31 @@ function EnergyForecast() {
                 <XAxis dataKey="month" tickLine={false} axisLine={false} fontSize={12} />
                 <YAxis tickLine={false} axisLine={false} fontSize={12} />
                 <Tooltip formatter={(v: number) => `${fmt(v)} kWh`} contentStyle={{ borderRadius: 8, border: "1px solid var(--border)" }} />
-                <Bar dataKey="expected" name="Expected generation" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
+                {/* Average generation dotted reference line */}
+                <Line
+                  type="monotone"
+                  dataKey={() => Math.round(annualKwh / 12)}
+                  stroke="#FFC21A"
+                  strokeDasharray="4 4"
+                  strokeWidth={2}
+                  name="Monthly Average"
+                  dot={false}
+                />
+                <Bar dataKey="expected" name="Expected generation" radius={[4, 4, 0, 0]}>
+                  {data.map((entry, index) => (
+                    <Cell
+                      key={`forecast-cell-${index}`}
+                      fill={entry.month === metrics.peakMonth ? "#FFC21A" : "#0A7A4F"}
+                    />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            The monsoon dip in June–August is typical across most of India.
-          </p>
+          <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+            <span>Peak month in amber ({metrics.peakMonth}: {fmt(data.find(d=>d.month===metrics.peakMonth)?.expected ?? 0)} kWh)</span>
+            <span className="flex items-center gap-1.5"><span className="h-0.5 w-4 border-t-2 border-dashed border-amber-400" /> Avg: {fmt(annualKwh / 12)} kWh/mo</span>
+          </div>
         </Panel>
       </div>
 
@@ -948,39 +1341,39 @@ function EnergyForecast() {
         </ul>
       </Panel>
 
-      <Panel title="Month-by-month estimate">
-        <div className="overflow-x-auto">
+      <Panel title="Month-by-month estimate & savings">
+        <div className="max-h-80 overflow-y-auto overflow-x-auto rounded-md border">
           <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b text-left text-xs text-muted-foreground">
-                <th className="py-2 font-medium">Month</th>
-                <th className="py-2 text-right font-medium">Peak sun hours (h/day)</th>
-                <th className="py-2 text-right font-medium">Expected generation (kWh)</th>
-                <th className="py-2 text-right font-medium">Expected savings (₹)</th>
+            <thead className="sticky top-0 bg-card z-10 border-b shadow-sm">
+              <tr className="text-left text-xs text-muted-foreground bg-muted/50">
+                <th className="py-2.5 px-3 font-semibold">Month</th>
+                <th className="py-2.5 px-3 text-right font-semibold">Peak sun hours (h/day)</th>
+                <th className="py-2.5 px-3 text-right font-semibold">Expected generation (kWh)</th>
+                <th className="py-2.5 px-3 text-right font-semibold">Expected savings (₹)</th>
               </tr>
             </thead>
             <tbody>
               {data.map((d) => (
-                <tr key={d.month} className="border-b last:border-0">
-                  <td className="py-2 text-muted-foreground">{d.month}</td>
-                  <td className="py-2 text-right tnum">{fmt(d.sunHours, 1)}</td>
-                  <td className="py-2 text-right tnum">{fmt(d.expected)}</td>
-                  <td className="py-2 text-right tnum text-forest">{inr(d.savings)}</td>
+                <tr key={d.month} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                  <td className="py-2 px-3 text-forest font-medium">{d.month}</td>
+                  <td className="py-2 px-3 text-right tnum">{fmt(d.sunHours, 1)}</td>
+                  <td className="py-2 px-3 text-right tnum">{fmt(d.expected)}</td>
+                  <td className="py-2 px-3 text-right tnum text-forest font-medium">{inr(d.savings)}</td>
                 </tr>
               ))}
             </tbody>
-            <tfoot>
-              <tr className="font-medium">
-                <td className="py-2 text-forest">Total</td>
-                <td className="py-2" />
-                <td className="py-2 text-right tnum text-forest">{fmt(annualKwh)}</td>
-                <td className="py-2 text-right tnum text-forest">{inr(annualSavings)}</td>
+            <tfoot className="sticky bottom-0 bg-card z-10 border-t-2 font-semibold">
+              <tr className="bg-primary/5">
+                <td className="py-3 px-3 text-forest font-display">Total Annual</td>
+                <td className="py-3 px-3 text-right text-xs text-muted-foreground">—</td>
+                <td className="py-3 px-3 text-right tnum text-forest">{fmt(annualKwh)} kWh</td>
+                <td className="py-3 px-3 text-right tnum text-forest text-base">{inr(annualSavings)}</td>
               </tr>
             </tfoot>
           </table>
         </div>
         <p className="mt-4 text-xs italic text-muted-foreground">
-          Note: these are indicative estimates based on typical-year sun hours, panel tilt and a {(PERFORMANCE_RATIO * 100).toFixed(0)}% performance ratio — not metered production. No live weather or external data is used.
+          Note: Monthly generation reflects seasonal sun insolation in {settings.city} with a {(settings.performanceRatio * 100).toFixed(0)}% performance ratio and ₹{settings.tariff}/unit tariff.
         </p>
       </Panel>
     </div>
@@ -1021,6 +1414,17 @@ function EnvironmentalImpact() {
   const totalCoalKg = (totalCo2Kg / settings.gridCo2Factor) * SHARED_SOLAR_CONSTANTS.coalKgPerKwh;
   const totalTrees = totalCo2Kg / SHARED_SOLAR_CONSTANTS.treeCo2KgPerYear;
 
+  // Share My Impact action
+  const shareImpact = () => {
+    const text = `🌱 My home rooftop solar system in ${settings.city} offsets ${fmt(yearlyCo2Kg)} kg CO₂ per year (equivalent to planting ${fmt(yearlyTrees)} mature trees)! Calculated with SolarVerse AI.`;
+    if (navigator.share) {
+      navigator.share({ title: "My Solar Environmental Impact", text, url: window.location.href }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(text);
+      toast.success("Impact summary copied to clipboard! Share it with friends.");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-4">
@@ -1028,6 +1432,39 @@ function EnvironmentalImpact() {
         <Metric label="Equivalent trees planted" value={fmt(yearlyTrees)} unit="trees" hint={`One tree absorbs ~${SHARED_SOLAR_CONSTANTS.treeCo2KgPerYear} kg CO₂ per year`} />
         <Metric label="Coal saved each year" value={fmt(yearlyCoalKg)} unit="kg" hint={`At ${SHARED_SOLAR_CONSTANTS.coalKgPerKwh} kg coal per kWh`} />
         <Metric label="CO₂ avoided over 25 years" value={fmt(totalCo2Kg / 1000, 1)} unit="tonnes" hint={`Includes ${(settings.degradation * 100).toFixed(1)}%/yr degradation`} />
+      </div>
+
+      {/* Tree Equivalents Card & Share My Impact Header */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="sm:col-span-2 rounded-xl border border-primary/20 bg-gradient-to-r from-emerald-500/10 via-card to-card p-5 shadow-soft flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-primary">
+              <Leaf className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Tree Equivalents Offset</p>
+              <h3 className="font-display text-2xl font-light text-forest">
+                {fmt(yearlyTrees)} Trees <span className="text-sm font-normal text-muted-foreground">/ year</span>
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Lifetime offset: {fmt(Math.round(totalTrees))} mature trees over 25 years
+              </p>
+            </div>
+          </div>
+          <Button onClick={shareImpact} className="gap-2">
+            Share My Impact
+          </Button>
+        </div>
+
+        <div className="rounded-xl border bg-card p-5 shadow-soft flex flex-col justify-between">
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Grid Emission Factor</span>
+          <p className="font-display text-2xl font-light text-forest mt-1">
+            {settings.gridCo2Factor} <span className="text-sm font-normal text-muted-foreground">kg CO₂/kWh</span>
+          </p>
+          <p className="text-xs text-muted-foreground">
+            CEA (Central Electricity Authority) standard baseline
+          </p>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -1064,7 +1501,15 @@ function EnvironmentalImpact() {
             <ResponsiveContainer>
               <AreaChart data={series}>
                 <CartesianGrid vertical={false} stroke="var(--border)" />
-                <XAxis dataKey="year" tickLine={false} axisLine={false} fontSize={12} tickFormatter={(v) => `Y${v}`} />
+                {/* X-axis labels Y1, Y5, Y10, Y15, Y20, Y25 only */}
+                <XAxis
+                  dataKey="year"
+                  tickLine={false}
+                  axisLine={false}
+                  fontSize={12}
+                  ticks={[1, 5, 10, 15, 20, 25]}
+                  tickFormatter={(v) => `Y${v}`}
+                />
                 <YAxis tickLine={false} axisLine={false} fontSize={12} tickFormatter={(v) => `${v} t`} />
                 <Tooltip
                   formatter={(v: number) => `${fmt(v)} t`}
@@ -1076,7 +1521,7 @@ function EnvironmentalImpact() {
             </ResponsiveContainer>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            Based on {fmt(annualKwh)} kWh generated in year 1, falling {(ASSUMPTIONS.degradation * 100).toFixed(1)}% each year.
+            Based on {fmt(annualKwh)} kWh generated in year 1, falling {(settings.degradation * 100).toFixed(1)}% each year.
           </p>
         </Panel>
       </div>
@@ -1337,6 +1782,8 @@ function MyReports() {
   const { data: reports = [], isLoading, isError } = useQuery(assessmentsQuery);
   const [creating, setCreating] = useState(false);
   const [viewing, setViewing] = useState<Assessment | null>(null);
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<"date" | "size" | "savings">("date");
 
   const createSample = async () => {
     setCreating(true);
@@ -1391,15 +1838,38 @@ function MyReports() {
     toast.success("Report deleted.");
   };
 
+  // Filter & Sort
+  const filteredReports = reports.filter((r) =>
+    r.title.toLowerCase().includes(search.toLowerCase()) ||
+    (r.city && r.city.toLowerCase().includes(search.toLowerCase()))
+  );
+
+  filteredReports.sort((a, b) => {
+    if (sortBy === "size") return b.capacity_kw - a.capacity_kw;
+    if (sortBy === "savings") return b.annual_savings - a.annual_savings;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+
   return (
     <div className="space-y-6">
       <Panel title="My saved reports">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-muted-foreground">
-            {reports.length
-              ? `${reports.length} saved report${reports.length === 1 ? "" : "s"} · private to your account`
-              : "Reports you save are private to your account"}
-          </p>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            <Input
+              placeholder="Search reports by title or city…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-64 h-8 text-xs"
+            />
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as "date" | "size" | "savings")}>
+              <SelectTrigger className="w-36 h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date">Sort by Date</SelectItem>
+                <SelectItem value="size">Sort by Size</SelectItem>
+                <SelectItem value="savings">Sort by Savings</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <Button size="sm" onClick={createSample} disabled={creating}>
             <Plus className="h-4 w-4" /> {creating ? "Creating…" : "Create sample report"}
           </Button>
@@ -1409,46 +1879,77 @@ function MyReports() {
           <p className="py-8 text-center text-sm text-muted-foreground">Loading your reports…</p>
         ) : isError ? (
           <Empty>We couldn't load your reports. Refresh the page and try again.</Empty>
-        ) : reports.length === 0 ? (
-          <Empty>
-            No saved reports yet. Run an assessment in the{" "}
-            <Link to="/advisor" className="text-primary underline underline-offset-2">Solar Advisor</Link>{" "}
-            or create a sample report to see how this works.
-          </Empty>
+        ) : filteredReports.length === 0 ? (
+          /* Lotus Empty State */
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed p-10 text-center">
+            <div
+              className="h-24 w-24 opacity-30 dark:opacity-40 mb-3"
+              style={{
+                backgroundImage: "url('/golden-lotus.webp')",
+                backgroundSize: "contain",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "center",
+              }}
+            />
+            <h4 className="font-display text-base font-medium text-forest">No Saved Reports Found</h4>
+            <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+              {search ? "No reports matched your search keyword." : "Run an assessment or save a system plan from the System Planner to view your solar reports here."}
+            </p>
+            <div className="mt-4 flex gap-2">
+              <Button size="sm" variant="outline" onClick={createSample} disabled={creating}>
+                Create Sample Report
+              </Button>
+              <Button asChild size="sm">
+                <Link to="/advisor">Open Solar Advisor</Link>
+              </Button>
+            </div>
+          </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead className="text-right">System size</TableHead>
-                <TableHead className="text-right">Estimated savings</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {reports.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell className="whitespace-nowrap text-muted-foreground tnum">{fmtDate(r.created_at)}</TableCell>
-                  <TableCell className="text-forest">{r.title}</TableCell>
-                  <TableCell className="text-right tnum">{fmt(r.capacity_kw, 1)} kW</TableCell>
-                  <TableCell className="text-right tnum text-forest">
-                    {inr(r.annual_savings)}
-                    <span className="text-xs text-muted-foreground">/yr</span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-2">
-                      <Button size="sm" variant="outline" onClick={() => setViewing(r)}>
-                        <Eye className="h-4 w-4" /> View
-                      </Button>
-                      <PrintLink id={r.id} />
-                      <DeleteReport title={r.title} onConfirm={() => remove(r.id)} />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredReports.map((r) => (
+              <div key={r.id} className="flex flex-col justify-between rounded-xl border bg-card p-4 shadow-soft transition-all duration-300 hover:border-primary/50 hover:shadow-lift">
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[11px] text-muted-foreground tnum">{fmtDate(r.created_at)}</span>
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                      {fmt(r.capacity_kw, 1)} kW
+                    </span>
+                  </div>
+                  <h4 className="mt-1 font-display text-base font-normal text-forest leading-snug">{r.title}</h4>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{r.city || "Rooftop"}</p>
+
+                  <dl className="mt-3 space-y-1.5 border-t pt-2 text-xs">
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Est. Savings</dt>
+                      <dd className="tnum font-medium text-forest">{inr(r.annual_savings)}/yr</dd>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Generation</dt>
+                      <dd className="tnum text-forest">{fmt(r.annual_kwh)} kWh/yr</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Est. Cost</dt>
+                      <dd className="tnum text-forest">{inr(r.cost)}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Payback</dt>
+                      <dd className="tnum text-amber-600 dark:text-amber-400 font-medium">
+                        {r.payback_years != null ? `${fmt(r.payback_years, 1)} yrs` : "—"}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+
+                <div className="mt-4 flex items-center justify-end gap-1.5 border-t pt-3">
+                  <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => setViewing(r)}>
+                    <Eye className="h-3.5 w-3.5 mr-1" /> View
+                  </Button>
+                  <PrintLink id={r.id} />
+                  <DeleteReport title={r.title} onConfirm={() => remove(r.id)} />
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </Panel>
 

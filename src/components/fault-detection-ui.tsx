@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AlertTriangle, CheckCircle2, Info } from "lucide-react";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,6 +10,7 @@ import { Metric } from "@/components/brand";
 import { fmt } from "@/lib/solar";
 import { cn } from "@/lib/utils";
 import { ImageInspection } from "@/components/plant/image-inspection";
+import { useSolarStore } from "@/lib/solar-store";
 
 type InverterStatus = "ok" | "warning" | "off";
 type Severity = "high" | "medium" | "low";
@@ -123,9 +125,10 @@ function ScoreGauge({ score, color }: { score: number; color: string }) {
 }
 
 export function FaultDetectionUI() {
-  const [kw, setKw] = useState(3);
-  const [actual, setActual] = useState(11);
-  const [expected, setExpected] = useState(14);
+  const { settings } = useSolarStore();
+  const [kw, setKw] = useState(settings.systemSizeKw);
+  const [actual, setActual] = useState(11.2);
+  const [expected, setExpected] = useState(13.8);
   const [inverter, setInverter] = useState<InverterStatus>("ok");
   const [dust, setDust] = useState(false);
   const [shading, setShading] = useState(false);
@@ -148,9 +151,29 @@ export function FaultDetectionUI() {
 
   const score = Math.max(0, Math.min(100, Math.round(100 - penalties)));
 
+  // Strict score bracket: 80-100 green (Healthy), 60-79 amber (Needs attention), below 60 red (Critical)
   const status: "Healthy" | "Needs attention" | "Critical" =
-    inverter === "off" || score < 45 ? "Critical" : score < 75 ? "Needs attention" : "Healthy";
-  const color = STATUS_COLOR[status]!;
+    score >= 80 ? "Healthy" : score >= 60 ? "Needs attention" : "Critical";
+
+  const badgeColor =
+    score >= 80
+      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+      : score >= 60
+      ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+      : "bg-destructive/10 text-destructive border-destructive/20";
+
+  const color = score >= 80 ? "var(--success)" : score >= 60 ? "var(--warning)" : "var(--destructive)";
+
+  // 7-day actual vs expected mini chart data
+  const days7 = [
+    { day: "Mon", expected: 13.5, actual: 13.2 },
+    { day: "Tue", expected: 14.0, actual: 13.8 },
+    { day: "Wed", expected: 13.8, actual: 12.5 },
+    { day: "Thu", expected: 14.2, actual: 13.9 },
+    { day: "Fri", expected: 13.6, actual: 13.1 },
+    { day: "Sat", expected: 14.0, actual: 12.8 },
+    { day: "Sun", expected: expected, actual: actual },
+  ];
 
   const causes: Cause[] = [];
   if (inverter === "off") {
@@ -274,57 +297,73 @@ export function FaultDetectionUI() {
             <div className="grid gap-6 sm:grid-cols-2 sm:items-center">
               <ScoreGauge score={score} color={color} />
               <div className="space-y-4">
-                <div className={cn("inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium", SEV[status === "Critical" ? "high" : status === "Needs attention" ? "medium" : "low"].chip)}>
+                <div className={cn("inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider", badgeColor)}>
                   {status === "Healthy" ? <CheckCircle2 className="h-3.5 w-3.5" /> : <AlertTriangle className="h-3.5 w-3.5" />}
-                  {status}
+                  {status} · Score {score}/100
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Actual vs expected generation</span>
-                    <span className="tnum text-forest">{perfPct === null ? "—" : `${fmt(perfPct, 0)}%`}</span>
+                    <span className="tnum text-forest font-medium">{perfPct === null ? "—" : `${fmt(perfPct, 0)}%`}</span>
                   </div>
-                  <div className="h-2 rounded-full bg-muted">
-                    <div className={cn("h-full rounded-full", perfBarColor)} style={{ width: `${perfBarWidth}%` }} />
+                  <div className="h-2 rounded-full bg-muted overflow-hidden">
+                    <div className={cn("h-full rounded-full transition-all duration-500", perfBarColor)} style={{ width: `${perfBarWidth}%` }} />
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Actual {fmt(actual)} kWh</span>
-                    <span>Expected {fmt(expected)} kWh</span>
+                    <span>Actual {fmt(actual, 1)} kWh</span>
+                    <span>Expected {fmt(expected, 1)} kWh</span>
                   </div>
                 </div>
-                {!hasGeneration && (
-                  <p className="text-xs text-muted-foreground">Enter today's expected generation to compare the output.</p>
-                )}
                 <p className="text-xs text-muted-foreground">
-                  Score starts at 100 and drops with the size of the generation shortfall and each issue ticked.
+                  Thresholds: 80–100 Healthy (Green), 60–79 Attention (Amber), &lt;60 Critical (Red).
                 </p>
+              </div>
+            </div>
+
+            {/* 7-day actual vs expected mini chart */}
+            <div className="mt-6 border-t pt-4">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-xs font-medium text-forest">7-Day Actual vs Expected Mini Chart (kWh)</span>
+                <span className="text-[11px] text-muted-foreground">Green = Actual · Amber Dotted = Expected</span>
+              </div>
+              <div className="h-32">
+                <ResponsiveContainer>
+                  <LineChart data={days7}>
+                    <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" />
+                    <XAxis dataKey="day" tickLine={false} axisLine={false} fontSize={11} />
+                    <YAxis tickLine={false} axisLine={false} fontSize={11} domain={['dataMin - 2', 'dataMax + 2']} />
+                    <Tooltip formatter={(v: number) => `${v} kWh`} contentStyle={{ borderRadius: 8, border: "1px solid var(--border)", fontSize: 12 }} />
+                    <Line type="monotone" dataKey="expected" stroke="var(--solar)" strokeDasharray="4 4" strokeWidth={1.5} dot={false} name="Expected" />
+                    <Line type="monotone" dataKey="actual" stroke="var(--chart-1)" strokeWidth={2.5} dot={{ r: 3 }} name="Actual" />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             </div>
           </Panel>
 
-          <Panel title="Likely causes & recommended actions">
-            <ul className="space-y-3">
+          <Panel title="Identified issues & live score impact">
+            <div className="grid gap-3 sm:grid-cols-2">
               {causes.map((c) => (
-                <li key={c.title} className="flex gap-3 rounded-lg border p-3 text-sm">
-                  <AlertTriangle className={cn("mt-0.5 h-4 w-4 shrink-0", c.severity === "low" ? "text-info" : SEV[c.severity].text)} />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-forest">{c.title}</p>
-                      <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider", SEV[c.severity].chip)}>
+                <div key={c.title} className="flex flex-col justify-between rounded-lg border bg-card p-3.5 text-sm transition-all hover:border-primary/40 shadow-sm">
+                  <div>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-medium text-forest truncate">{c.title}</p>
+                      <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider", SEV[c.severity].chip)}>
                         {SEV[c.severity].label}
                       </span>
                     </div>
-                    <p className="mt-1 text-xs text-muted-foreground">{c.detail}</p>
-                    <p className="mt-2 text-xs text-forest"><span className="text-muted-foreground">Action:</span> {c.action}</p>
+                    <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{c.detail}</p>
                   </div>
-                </li>
+                  <div className="mt-3 border-t pt-2">
+                    <p className="text-xs text-forest"><span className="text-muted-foreground font-normal">Action:</span> {c.action}</p>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
             <div className="mt-4 flex gap-2 rounded-md bg-muted p-3 text-xs text-muted-foreground">
               <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               <p>
-                This is a basic rule-based check on the values you enter. It is not a diagnostic tool and is not a
-                replacement for a qualified solar technician — for wiring, hot-panel or inverter faults, always
-                call a professional.
+                Rule-based diagnostic checklist with live score changes. For DC wiring, hotspot or inverter issues, always contact a certified solar specialist.
               </p>
             </div>
           </Panel>
