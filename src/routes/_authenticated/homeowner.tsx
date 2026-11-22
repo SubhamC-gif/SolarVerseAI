@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { ASSUMPTIONS, MONTHS, monthlySeries, inr, fmt, fmtDate } from "@/lib/solar";
 import { useSolarStore, CITIES, SHARED_SOLAR_CONSTANTS, calculateSolarMetrics, type SolarSettings } from "@/lib/solar-store";
+import { useMotionMode, type MotionMode } from "@/components/live-theme";
 import { assessmentsQuery, profileQuery, type Assessment } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { FaultDetectionUI } from "@/components/fault-detection-ui";
@@ -1565,6 +1566,7 @@ function SettingsView() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { settings, update } = useSolarStore();
+  const { mode: motionMode, setMode: setMotionMode } = useMotionMode();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [email, setEmail] = useState("");
@@ -1725,6 +1727,24 @@ function SettingsView() {
               <Label htmlFor="st-bill" className="text-xs text-muted-foreground">Monthly Electricity Bill (₹)</Label>
               <Input id="st-bill" type="number" min={0} step={100} value={monthlyBill} onChange={(e) => setMonthlyBill(Number(e.target.value))} disabled={loading} className="tnum" />
               <p className="text-[11px] text-muted-foreground/70">Used to determine consumption offset and net-zero viability</p>
+            </div>
+
+            {/* Live Theme Motion Preference Selector */}
+            <div className="space-y-1.5 sm:col-span-2 rounded-xl border p-4 bg-muted/20">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="st-motion" className="text-xs font-semibold text-forest">Live Theme Motion System</Label>
+                  <p className="text-[11px] text-muted-foreground">Full (ambient particles + rotations) / Calm (smooth transitions only) / Off</p>
+                </div>
+                <Select value={motionMode} onValueChange={(v) => setMotionMode(v as MotionMode)}>
+                  <SelectTrigger id="st-motion" className="w-36 h-8 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="full">Full Motion</SelectItem>
+                    <SelectItem value="calm">Calm (Eco)</SelectItem>
+                    <SelectItem value="off">Motion Off</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3 pt-2">
