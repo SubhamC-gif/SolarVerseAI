@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { ASSUMPTIONS, MONTHS, monthlySeries, inr, fmt, fmtDate } from "@/lib/solar";
+import { useSolarStore, CITIES, SHARED_SOLAR_CONSTANTS, calculateSolarMetrics, type SolarSettings } from "@/lib/solar-store";
 import { assessmentsQuery, profileQuery, type Assessment } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { FaultDetectionUI } from "@/components/fault-detection-ui";
@@ -51,6 +52,7 @@ const NAV = [
 
 function Homeowner() {
   const [view, setView] = useState("Overview");
+  const { settings } = useSolarStore();
 
   const nav = NAV.map(n => ({
     ...n,
@@ -61,18 +63,39 @@ function Homeowner() {
     }
   }));
 
+  const getSubtitle = (tab: string) => {
+    switch (tab) {
+      case "Overview":
+        return `${settings.city}, West Bengal · South-facing RCC roof · ${fmt(settings.roofArea)} sq ft · ${fmt(settings.systemSizeKw, 1)} kW`;
+      case "Solar Potential":
+        return "Assess your rooftop area, solar irradiance, and estimated generation capacity.";
+      case "Fault Detection":
+        return "Real-time diagnostic health, panel anomaly monitoring, and issue resolution.";
+      case "System Planner":
+        return "Tailor your panel capacity, inverter sizing, and estimated installation investment.";
+      case "Energy Forecast":
+        return "Seasonal 12-month generation predictions and grid export projections.";
+      case "Savings & ROI":
+        return "Financial returns, payback timeline, and cumulative lifetime net position.";
+      case "Battery Planner":
+        return "Energy storage sizing, critical load backup, and battery chemistry comparison.";
+      case "Environmental Impact":
+        return "Carbon offset metrics, tree equivalents, and lifetime clean energy generation.";
+      case "My Reports":
+        return "Archived system estimates, generated audits, and downloadable solar plans.";
+      case "Settings":
+        return "Customize location, roof area, utility tariff, and solar simulation parameters.";
+      default:
+        return "Personalized solar intelligence for your home.";
+    }
+  };
+
   return (
     <DashboardShell 
       nav={nav} 
       active={view} 
       title={view === "Overview" ? "Good morning! Let's make your home solar-ready." : view} 
-      subtitle={
-        view === "Overview"
-          ? "Bengaluru, Karnataka · South-facing RCC roof · 600 sq ft"
-          : view === "Settings"
-            ? "Manage your profile, tariff and account"
-            : "Personalized solar intelligence for your home"
-      }
+      subtitle={getSubtitle(view)}
     >
       {view === "Overview" ? (
         <Overview onNavigate={setView} />
@@ -108,7 +131,7 @@ function Homeowner() {
 
 // Sample values shown on the Overview when the signed-in homeowner has no saved
 // profile / assessment yet. Clearly labelled as sample data in the UI.
-const SAMPLE_OVERVIEW = { kw: 3, city: "Bengaluru" };
+const SAMPLE_OVERVIEW = { kw: 3, city: "Kolkata" };
 
 const QUICK_LINKS = [
   { icon: Sun, label: "Solar Potential", desc: "Check your roof's capacity" },
@@ -120,17 +143,16 @@ const QUICK_LINKS = [
 function Overview({ onNavigate }: { onNavigate: (view: string) => void }) {
   const { data: profile } = useQuery(profileQuery);
   const { data: assessments = [] } = useQuery(assessmentsQuery);
+  const { settings, calculations } = useSolarStore();
   const latest = assessments[0] ?? null;
 
   const saved = latest !== null;
-  const kw = latest?.capacity_kw ?? SAMPLE_OVERVIEW.kw;
-  const annualKwh = latest?.annual_kwh ?? kw * ASSUMPTIONS.specificYield;
-  const annualSavings = latest?.annual_savings ?? annualKwh * ASSUMPTIONS.tariff;
-  const co2 = (annualKwh * ASSUMPTIONS.emissionFactor) / 1000; // tonnes/yr
-  const perKw = kw > 0 ? annualKwh / kw : ASSUMPTIONS.specificYield;
-  const series = monthlySeries(kw, perKw, 0);
-
-  const city = latest?.city ?? profile?.city ?? SAMPLE_OVERVIEW.city;
+  const kw = latest?.capacity_kw ?? settings.systemSizeKw;
+  const annualKwh = latest?.annual_kwh ?? calculations.annualGenerationKwh;
+  const annualSavings = latest?.annual_savings ?? calculations.yearlySavings;
+  const co2 = (annualKwh * settings.gridCo2Factor) / 1000; // tonnes/yr
+  const city = latest?.city ?? profile?.city ?? settings.city;
+  const series = calculations.monthlySeries;
 
   return (
     <div className="space-y-6">
@@ -158,18 +180,18 @@ function Overview({ onNavigate }: { onNavigate: (view: string) => void }) {
           label="Yearly generation"
           value={fmt(annualKwh)}
           unit="kWh"
-          hint={saved ? "Estimated for your saved system" : `Sample estimate at ${fmt(ASSUMPTIONS.specificYield)} kWh/kWp`}
+          hint={saved ? "Estimated for your saved system" : `Calculated for ${city} at ${fmt(calculations.yieldPerKw)} kWh/kWp`}
         />
         <Metric
           label="Yearly savings"
           value={inr(annualSavings)}
-          hint={`at ₹${ASSUMPTIONS.tariff}/kWh`}
+          hint={`at ₹${settings.tariff}/kWh`}
         />
         <Metric
           label="CO₂ avoided"
           value={fmt(co2, 2)}
           unit="t/yr"
-          hint={`Grid factor ${ASSUMPTIONS.emissionFactor} kg/kWh`}
+          hint={`Grid factor ${settings.gridCo2Factor} kg/kWh`}
         />
       </div>
 
@@ -238,59 +260,49 @@ function RoiField({ id, label, value, onChange, step = 1, hint }: { id: string; 
 }
 
 function SavingsRoi() {
-  const [bill, setBill] = useState(3000);
-  const [kw, setKw] = useState(3);
-  const [costPerKw, setCostPerKw] = useState(ASSUMPTIONS.costPerKw);
+  const { settings, update } = useSolarStore();
   const [subsidy, setSubsidy] = useState(0);
-  const [tariff, setTariff] = useState(ASSUMPTIONS.tariff);
 
-  const annualUnits = tariff > 0 ? (bill / tariff) * 12 : 0;
-  const annualGeneration = kw * ASSUMPTIONS.specificYield;
-  const offsetUnits = Math.min(annualGeneration, annualUnits);
-  const yearlySavings = offsetUnits * tariff;
-
-  const grossCost = kw * costPerKw;
-  const netCost = Math.max(0, grossCost - subsidy);
-  const payback = yearlySavings > 0 && netCost > 0 ? netCost / yearlySavings : Infinity;
+  // Dynamic calculations for the current system
+  const metrics = calculateSolarMetrics(settings, settings.systemSizeKw, subsidy);
 
   let running = 0;
   const series = Array.from({ length: 25 }, (_, i) => {
-    const annual = yearlySavings * (1 - ASSUMPTIONS.degradation) ** i;
+    const annual = metrics.yearlySavings * (1 - settings.degradation) ** i;
     running += annual;
     return { year: i + 1, annual: Math.round(annual), cumulative: Math.round(running) };
   });
-  const total25 = Math.round(running);
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-4">
         <Metric
           label="Total cost after subsidy"
-          value={inr(netCost)}
-          hint={subsidy > 0 ? `${inr(grossCost)} − ${inr(subsidy)} subsidy` : "No subsidy applied"}
+          value={inr(metrics.netCost)}
+          hint={subsidy > 0 ? `${inr(metrics.grossCost)} − ${inr(subsidy)} subsidy` : "No subsidy applied"}
         />
         <Metric
           label="Estimated yearly savings"
-          value={inr(yearlySavings)}
-          hint={`${fmt(offsetUnits)} kWh offset at ₹${fmt(tariff, 2)}/unit`}
+          value={inr(metrics.yearlySavings)}
+          hint={`${fmt(metrics.offsetUnitsKwh)} kWh offset at ₹${fmt(settings.tariff, 2)}/unit`}
         />
         <Metric
           label="Payback period"
-          value={Number.isFinite(payback) ? fmt(payback, 1) : "—"}
-          unit={Number.isFinite(payback) ? "years" : ""}
+          value={metrics.paybackYears > 0 ? fmt(metrics.paybackYears, 1) : "—"}
+          unit={metrics.paybackYears > 0 ? "years" : ""}
           hint="Time to recover your net cost"
         />
-        <Metric label="25-year savings" value={inr(total25)} hint="Includes 0.5%/yr degradation" />
+        <Metric label="25-year savings" value={inr(metrics.lifetime25YearSavings)} hint={`Includes ${(settings.degradation * 100).toFixed(1)}%/yr degradation`} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Panel title="Your inputs">
           <div className="space-y-4">
-            <RoiField id="roi-bill" label="Monthly electricity bill (₹)" value={bill} onChange={setBill} step={100} />
-            <RoiField id="roi-kw" label="System size (kW)" value={kw} onChange={setKw} step={0.5} hint="Your rooftop solar capacity" />
-            <RoiField id="roi-cost" label="Cost per kW (₹)" value={costPerKw} onChange={setCostPerKw} step={1000} hint="Indicative installed cost" />
+            <RoiField id="roi-bill" label="Monthly electricity bill (₹)" value={settings.monthlyBill} onChange={(n) => update({ monthlyBill: n })} step={100} />
+            <RoiField id="roi-kw" label="System size (kW)" value={settings.systemSizeKw} onChange={(n) => update({ systemSizeKw: n })} step={0.5} hint="Your rooftop solar capacity" />
+            <RoiField id="roi-cost" label="Cost per kW (₹)" value={settings.costPerKw} onChange={(n) => update({ costPerKw: n })} step={1000} hint="Indicative installed cost" />
             <RoiField id="roi-subsidy" label="Subsidy amount (₹)" value={subsidy} onChange={setSubsidy} step={1000} hint="Central + state subsidy, default 0" />
-            <RoiField id="roi-tariff" label="Electricity tariff (₹/unit)" value={tariff} onChange={setTariff} step={0.25} />
+            <RoiField id="roi-tariff" label="Electricity tariff (₹/unit)" value={settings.tariff} onChange={(n) => update({ tariff: n })} step={0.25} />
           </div>
         </Panel>
 
@@ -313,18 +325,18 @@ function SavingsRoi() {
               </ResponsiveContainer>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              Assumes a steady {fmt(ASSUMPTIONS.degradation * 100, 1)}% annual panel degradation and an unchanged tariff.
+              Assumes a steady {fmt(settings.degradation * 100, 1)}% annual panel degradation and an unchanged tariff.
             </p>
           </Panel>
 
           <Panel title="Payback at a glance">
             <dl className="space-y-2.5 text-sm">
               {[
-                ["Total system cost", inr(grossCost)],
+                ["Total system cost", inr(metrics.grossCost)],
                 ["Subsidy applied", inr(subsidy)],
-                ["Net cost to you", inr(netCost)],
-                ["Year-1 savings", inr(yearlySavings)],
-                ["Payback period", Number.isFinite(payback) ? `${fmt(payback, 1)} years` : "Not recoverable"],
+                ["Net cost to you", inr(metrics.netCost)],
+                ["Year-1 savings", inr(metrics.yearlySavings)],
+                ["Payback period", metrics.paybackYears > 0 ? `${fmt(metrics.paybackYears, 1)} years` : "Not recoverable"],
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between border-b pb-2 last:border-0">
                   <dt className="text-muted-foreground">{k}</dt>
@@ -341,27 +353,6 @@ function SavingsRoi() {
     </div>
   );
 }
-
-// Average daily peak sun hours (kWh/m²/day) — indicative annual averages for Indian cities.
-const CITY_SUN_HOURS: Record<string, number> = {
-  Delhi: 5.1,
-  Mumbai: 5,
-  Bengaluru: 5.3,
-  Chennai: 5.4,
-  Kolkata: 4.7,
-  Hyderabad: 5.4,
-  Pune: 5.4,
-  Ahmedabad: 5.6,
-  Jaipur: 5.6,
-  Lucknow: 5.1,
-  Surat: 5.5,
-  Bhopal: 5.4,
-  Nagpur: 5.4,
-  Kochi: 4.8,
-  Chandigarh: 5.2,
-};
-
-const CITIES = Object.keys(CITY_SUN_HOURS);
 
 // Share of the gross roof area that stays shadow-free and usable for panels.
 const ROOF_FACTOR: Record<string, number> = { flat: 0.7, sloped: 0.85 };
@@ -386,26 +377,23 @@ function Choice({ id, label, value, onChange, options, hint }: { id: string; lab
 }
 
 function SolarPotentialView() {
-  const [city, setCity] = useState("Bengaluru");
-  const [roofArea, setRoofArea] = useState(600);
-  const [roofType, setRoofType] = useState("flat");
-  const [shading, setShading] = useState("none");
+  const { settings, update } = useSolarStore();
 
-  const sunHours = CITY_SUN_HOURS[city] ?? 5;
-  const usableArea = roofArea * (ROOF_FACTOR[roofType] ?? 1);
-  const maxKw = Math.round((usableArea / ASSUMPTIONS.sqftPerKw) * 10) / 10;
-  const effectiveKw = maxKw * (SHADING_FACTOR[shading] ?? 1);
-  const yieldPerKw = sunHours * 365 * PERFORMANCE_RATIO;
-  const annualKwh = effectiveKw * yieldPerKw;
-  const data = monthlySeries(effectiveKw, yieldPerKw, 0);
+  const metrics = calculateSolarMetrics(settings, settings.systemSizeKw);
+  const maxKw = metrics.maxInstallableKw;
+  const sunHours = metrics.sunHours;
+  const usableArea = metrics.usableRoofArea;
+  const yieldPerKw = metrics.yieldPerKw;
+  const annualKwh = metrics.annualGenerationKwh;
+  const data = metrics.monthlySeries;
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-4">
-        <Metric label="Usable roof area" value={fmt(usableArea)} unit="sq ft" hint={`of ${fmt(roofArea)} sq ft gross`} />
+        <Metric label="Usable roof area" value={fmt(usableArea)} unit="sq ft" hint={`of ${fmt(settings.roofArea)} sq ft gross`} />
         <Metric label="Max installable size" value={fmt(maxKw, 1)} unit="kW" hint="At ~100 sq ft per kW" />
-        <Metric label="Avg. daily sun hours" value={fmt(sunHours, 1)} unit="h" hint={`${city} annual average`} />
-        <Metric label="Estimated yearly generation" value={fmt(annualKwh)} unit="kWh" hint={`${fmt(effectiveKw, 1)} kW after shading`} />
+        <Metric label="Avg. daily sun hours" value={fmt(sunHours, 1)} unit="h" hint={`${settings.city} annual average`} />
+        <Metric label="Estimated yearly generation" value={fmt(annualKwh)} unit="kWh" hint={`${fmt(settings.systemSizeKw, 1)} kW system`} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -414,27 +402,27 @@ function SolarPotentialView() {
             <Choice
               id="sp-city"
               label="City"
-              value={city}
-              onChange={setCity}
-              options={CITIES.map((c) => ({ value: c, label: `${c} · ${CITY_SUN_HOURS[c]} h` }))}
-              hint="Sets the average daily sun hours"
+              value={settings.city}
+              onChange={(c) => update({ city: c })}
+              options={CITIES.map((c) => ({ value: c, label: c }))}
+              hint="Sets the average daily sun hours & seasonal solar profile"
             />
-            <RoiField id="sp-area" label="Roof area (sq ft)" value={roofArea} onChange={setRoofArea} step={50} hint="Total available roof area" />
+            <RoiField id="sp-area" label="Roof area (sq ft)" value={settings.roofArea} onChange={(a) => update({ roofArea: a })} step={50} hint="Total available roof area" />
             <Choice
               id="sp-roof"
               label="Roof type"
-              value={roofType}
-              onChange={setRoofType}
-              options={[{ value: "flat", label: "Flat" }, { value: "sloped", label: "Sloped" }]}
+              value={settings.roofType}
+              onChange={(t) => update({ roofType: t as "flat" | "sloped" })}
+              options={[{ value: "flat", label: "Flat (RCC)" }, { value: "sloped", label: "Sloped / Shed" }]}
               hint="Flat roofs need spacing between panel rows"
             />
             <Choice
               id="sp-shade"
               label="Shading level"
-              value={shading}
-              onChange={setShading}
-              options={[{ value: "none", label: "None" }, { value: "low", label: "Low" }, { value: "high", label: "High" }]}
-              hint="Trees, tanks or nearby buildings"
+              value={settings.shading}
+              onChange={(s) => update({ shading: s as "none" | "low" | "high" })}
+              options={[{ value: "none", label: "None (Full sun)" }, { value: "low", label: "Low (Partial shadow)" }, { value: "high", label: "High (Heavy shadow)" }]}
+              hint="Trees, water tanks or adjacent parapets"
             />
           </div>
         </Panel>
@@ -453,14 +441,14 @@ function SolarPotentialView() {
               </ResponsiveContainer>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              The monsoon dip in July–August is typical across most of India.
+              Calculated using the {settings.city} 12-month solar profile and {(settings.performanceRatio * 100).toFixed(0)}% performance ratio.
             </p>
           </Panel>
 
           <Panel title="Site summary">
             <dl className="space-y-2.5 text-sm">
               {[
-                ["City", city],
+                ["City", settings.city],
                 ["Average daily sun hours", `${fmt(sunHours, 1)} h`],
                 ["Usable roof area", `${fmt(usableArea)} sq ft`],
                 ["Maximum system size", `${fmt(maxKw, 1)} kW`],
@@ -549,19 +537,18 @@ function FitBadge({ ok, okLabel, failLabel }: { ok: boolean; okLabel: string; fa
 }
 
 function SystemPlanner() {
-  const [monthlyUnits, setMonthlyUnits] = useState(330);
-  const [city, setCity] = useState("Bengaluru");
-  const [roofArea, setRoofArea] = useState(600);
+  const { settings, update } = useSolarStore();
   const [budget, setBudget] = useState(200000);
-  const [costPerKw, setCostPerKw] = useState(ASSUMPTIONS.costPerKw);
 
-  const sunHours = CITY_SUN_HOURS[city] ?? 5;
-  const yieldPerKw = sunHours * 365 * PERFORMANCE_RATIO;
+  const metrics = calculateSolarMetrics(settings);
+  const monthlyUnits = settings.tariff > 0 ? Math.round(settings.monthlyBill / settings.tariff) : 350;
+  const sunHours = metrics.sunHours;
+  const yieldPerKw = metrics.yieldPerKw;
   const annualUnits = monthlyUnits * 12;
   const needKw = yieldPerKw > 0 ? annualUnits / yieldPerKw : 0;
   const recommendedKw = roundHalfKw(needKw);
 
-  const ctx: PlanContext = { yieldPerKw, roofArea, budget, costPerKw };
+  const ctx: PlanContext = { yieldPerKw, roofArea: settings.roofArea, budget, costPerKw: settings.costPerKw };
   const recommended = buildPlan("recommended", "Recommended", recommendedKw, ctx);
   const smaller = buildPlan("smaller", "Smaller", roundHalfKw(recommendedKw * PLAN_SCALE.smaller), ctx);
   const larger = buildPlan("larger", "Larger", roundHalfKw(recommendedKw * PLAN_SCALE.larger), ctx);
@@ -574,8 +561,8 @@ function SystemPlanner() {
       <div className="grid gap-4 md:grid-cols-4">
         <Metric label="Recommended system size" value={fmt(recommended.kw, 1)} unit="kW" hint={`To offset ${fmt(annualUnits)} kWh/yr`} />
         <Metric label="Number of panels" value={fmt(recommended.panels)} unit={`× ${PLANNER_PANEL_WATT} W`} hint="Module count at the assumed rating" />
-        <Metric label="Roof area required" value={fmt(recommended.area)} unit="sq ft" hint={`of ${fmt(roofArea)} sq ft available`} />
-        <Metric label="Estimated cost" value={inr(recommended.cost)} hint={`at ${inr(costPerKw)}/kW`} />
+        <Metric label="Roof area required" value={fmt(recommended.area)} unit="sq ft" hint={`of ${fmt(settings.roofArea)} sq ft available`} />
+        <Metric label="Estimated cost" value={inr(recommended.cost)} hint={`at ${inr(settings.costPerKw)}/kW`} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -585,19 +572,19 @@ function SystemPlanner() {
               id="spl-units"
               label="Average monthly electricity units (kWh)"
               value={monthlyUnits}
-              onChange={setMonthlyUnits}
+              onChange={(units) => update({ monthlyBill: units * settings.tariff })}
               step={10}
-              hint="Your typical monthly consumption from the bill"
+              hint="Calculated from your monthly bill & tariff"
             />
             <Choice
               id="spl-city"
               label="City"
-              value={city}
-              onChange={setCity}
-              options={CITIES.map((c) => ({ value: c, label: `${c} · ${CITY_SUN_HOURS[c]} h` }))}
+              value={settings.city}
+              onChange={(c) => update({ city: c })}
+              options={CITIES.map((c) => ({ value: c, label: c }))}
               hint="Sets the average daily sun hours"
             />
-            <RoiField id="spl-area" label="Roof area (sq ft)" value={roofArea} onChange={setRoofArea} step={50} hint="Total available roof area" />
+            <RoiField id="spl-area" label="Roof area (sq ft)" value={settings.roofArea} onChange={(a) => update({ roofArea: a })} step={50} hint="Total available roof area" />
             <RoiField
               id="spl-budget"
               label="Budget (₹, optional)"
@@ -609,8 +596,8 @@ function SystemPlanner() {
             <RoiField
               id="spl-cost"
               label="Cost per kW (₹)"
-              value={costPerKw}
-              onChange={setCostPerKw}
+              value={settings.costPerKw}
+              onChange={(c) => update({ costPerKw: c })}
               step={1000}
               hint="Editable — indicative installed cost"
             />
@@ -625,7 +612,7 @@ function SystemPlanner() {
                 <p className="mt-1 font-display text-3xl font-light text-forest">
                   {fmt(recommended.kw, 1)} kW
                 </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{city} · {fmt(sunHours, 1)} sun hours/day</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{settings.city} · {fmt(sunHours, 1)} sun hours/day</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <FitBadge ok={recommended.fitsRoof} okLabel="Fits your roof" failLabel="Doesn't fit your roof" />
@@ -839,22 +826,25 @@ const WEATHER_COLOR: Record<string, string> = { Sunny: "var(--chart-1)", Cloudy:
 const WEATHER_ICON: Record<string, typeof Sun> = { Sunny: Sun, Cloudy: Cloud, Rainy: CloudRain };
 
 function EnergyForecast() {
-  const [kw, setKw] = useState(3);
-  const [city, setCity] = useState("Bengaluru");
+  const { settings, update } = useSolarStore();
   const [tilt, setTilt] = useState("20");
 
   const tiltDeg = Number(tilt);
   const tiltFactor = Math.cos(((tiltDeg - OPTIMAL_TILT) * Math.PI) / 180);
-  const avgSun = CITY_SUN_HOURS[city] ?? 5;
 
-  const data = MONTHS.map((month, i) => {
-    const sunHours = avgSun * MONTHLY_SUN_SCALE[i]!;
-    const expected = kw * sunHours * tiltFactor * PERFORMANCE_RATIO * DAYS_IN_MONTH[i]!;
+  const metrics = calculateSolarMetrics(settings);
+  const avgSun = metrics.sunHours;
+  const kw = settings.systemSizeKw;
+
+  // Derive forecast using store settings and tilt factor
+  const data = metrics.monthlySeries.map((d) => {
+    const expected = Math.round(d.expected * tiltFactor);
+    const savings = Math.round(expected * settings.tariff);
     return {
-      month,
-      sunHours: Math.round(sunHours * 10) / 10,
-      expected: Math.round(expected),
-      savings: Math.round(expected * ASSUMPTIONS.tariff),
+      month: d.month,
+      sunHours: d.sunHours,
+      expected,
+      savings,
     };
   });
 
@@ -879,21 +869,21 @@ function EnergyForecast() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-4">
-        <Metric label="System size" value={fmt(kw, 1)} unit="kW" hint={`${city} · ${tiltDeg}° tilt`} />
-        <Metric label="Avg. daily sun hours" value={fmt(avgSun, 1)} unit="h" hint={`${city} annual average`} />
+        <Metric label="System size" value={fmt(kw, 1)} unit="kW" hint={`${settings.city} · ${tiltDeg}° tilt`} />
+        <Metric label="Avg. daily sun hours" value={fmt(avgSun, 1)} unit="h" hint={`${settings.city} annual average`} />
         <Metric label="Estimated annual generation" value={fmt(annualKwh)} unit="kWh" hint="Typical-year estimate" />
-        <Metric label="Estimated annual savings" value={inr(annualSavings)} hint={`at ₹${ASSUMPTIONS.tariff}/kWh`} />
+        <Metric label="Estimated annual savings" value={inr(annualSavings)} hint={`at ₹${settings.tariff}/kWh`} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Panel title="Your system">
           <div className="space-y-4">
-            <RoiField id="ef-kw" label="System size (kW)" value={kw} onChange={setKw} step={0.5} hint="Rooftop solar capacity" />
+            <RoiField id="ef-kw" label="System size (kW)" value={kw} onChange={(k) => update({ systemSizeKw: k })} step={0.5} hint="Rooftop solar capacity" />
             <Choice
               id="ef-city"
               label="City"
-              value={city}
-              onChange={setCity}
+              value={settings.city}
+              onChange={(c) => update({ city: c })}
               options={CITIES.map((c) => ({ value: c, label: c }))}
               hint="Sets the monthly sun hours"
             />
@@ -1009,37 +999,35 @@ const TREE_CO2_KG_PER_YEAR = 21; // kg CO₂ absorbed by one mature tree per yea
 const IMPACT_YEARS = 25;
 
 function EnvironmentalImpact() {
+  const { settings, update } = useSolarStore();
   const [source, setSource] = useState("kw");
-  const [kw, setKw] = useState(3);
-  const [city, setCity] = useState("Bengaluru");
   const [yearlyKwh, setYearlyKwh] = useState(4000);
 
-  const sunHours = CITY_SUN_HOURS[city] ?? 5;
-  const yieldPerKw = sunHours * 365 * PERFORMANCE_RATIO;
-  const annualKwh = source === "kw" ? kw * yieldPerKw : yearlyKwh;
+  const metrics = calculateSolarMetrics(settings);
+  const annualKwh = source === "kw" ? metrics.annualGenerationKwh : yearlyKwh;
 
-  const yearlyCo2Kg = annualKwh * GRID_CO2_KG_PER_KWH;
-  const yearlyCoalKg = annualKwh * COAL_KG_PER_KWH;
-  const yearlyTrees = yearlyCo2Kg / TREE_CO2_KG_PER_YEAR;
+  const yearlyCo2Kg = annualKwh * settings.gridCo2Factor;
+  const yearlyCoalKg = annualKwh * SHARED_SOLAR_CONSTANTS.coalKgPerKwh;
+  const yearlyTrees = yearlyCo2Kg / SHARED_SOLAR_CONSTANTS.treeCo2KgPerYear;
 
   let runningKg = 0;
   const series = Array.from({ length: IMPACT_YEARS }, (_, i) => {
-    const yearCo2Kg = annualKwh * (1 - ASSUMPTIONS.degradation) ** i * GRID_CO2_KG_PER_KWH;
+    const yearCo2Kg = annualKwh * (1 - settings.degradation) ** i * settings.gridCo2Factor;
     runningKg += yearCo2Kg;
     return { year: i + 1, cumulative: Math.round(runningKg / 1000) }; // tonnes
   });
 
   const totalCo2Kg = runningKg;
-  const totalCoalKg = (totalCo2Kg / GRID_CO2_KG_PER_KWH) * COAL_KG_PER_KWH;
-  const totalTrees = totalCo2Kg / TREE_CO2_KG_PER_YEAR;
+  const totalCoalKg = (totalCo2Kg / settings.gridCo2Factor) * SHARED_SOLAR_CONSTANTS.coalKgPerKwh;
+  const totalTrees = totalCo2Kg / SHARED_SOLAR_CONSTANTS.treeCo2KgPerYear;
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-4">
-        <Metric label="CO₂ avoided each year" value={fmt(yearlyCo2Kg)} unit="kg" hint={`At ${GRID_CO2_KG_PER_KWH} kg CO₂ per kWh`} />
-        <Metric label="Equivalent trees planted" value={fmt(yearlyTrees)} unit="trees" hint={`One tree absorbs ~${TREE_CO2_KG_PER_YEAR} kg CO₂ per year`} />
-        <Metric label="Coal saved each year" value={fmt(yearlyCoalKg)} unit="kg" hint={`At ${COAL_KG_PER_KWH} kg coal per kWh`} />
-        <Metric label="CO₂ avoided over 25 years" value={fmt(totalCo2Kg / 1000, 1)} unit="tonnes" hint="Includes 0.5%/yr degradation" />
+        <Metric label="CO₂ avoided each year" value={fmt(yearlyCo2Kg)} unit="kg" hint={`At ${settings.gridCo2Factor} kg CO₂ per kWh`} />
+        <Metric label="Equivalent trees planted" value={fmt(yearlyTrees)} unit="trees" hint={`One tree absorbs ~${SHARED_SOLAR_CONSTANTS.treeCo2KgPerYear} kg CO₂ per year`} />
+        <Metric label="Coal saved each year" value={fmt(yearlyCoalKg)} unit="kg" hint={`At ${SHARED_SOLAR_CONSTANTS.coalKgPerKwh} kg coal per kWh`} />
+        <Metric label="CO₂ avoided over 25 years" value={fmt(totalCo2Kg / 1000, 1)} unit="tonnes" hint={`Includes ${(settings.degradation * 100).toFixed(1)}%/yr degradation`} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -1062,8 +1050,8 @@ function EnvironmentalImpact() {
             </div>
             {source === "kw" ? (
               <>
-                <RoiField id="ei-kw" label="System size (kW)" value={kw} onChange={setKw} step={0.5} hint="Your rooftop solar capacity" />
-                <Choice id="ei-city" label="City" value={city} onChange={setCity} options={CITIES.map((c) => ({ value: c, label: c }))} hint="Sets the average daily sun hours" />
+                <RoiField id="ei-kw" label="System size (kW)" value={settings.systemSizeKw} onChange={(k) => update({ systemSizeKw: k })} step={0.5} hint="Your rooftop solar capacity" />
+                <Choice id="ei-city" label="City" value={settings.city} onChange={(c) => update({ city: c })} options={CITIES.map((c) => ({ value: c, label: c }))} hint="Sets the average daily sun hours" />
               </>
             ) : (
               <RoiField id="ei-kwh" label="Yearly generation (kWh)" value={yearlyKwh} onChange={setYearlyKwh} step={100} hint="Use a metered or estimated figure" />
@@ -1131,13 +1119,19 @@ type ProfileRow = {
 function SettingsView() {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { settings, update } = useSolarStore();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
-  const [city, setCity] = useState("");
-  const [tariff, setTariff] = useState("");
+  
+  // Settings values synced with shared store
+  const [city, setCity] = useState(settings.city);
+  const [roofArea, setRoofArea] = useState(settings.roofArea);
+  const [systemSizeKw, setSystemSizeKw] = useState(settings.systemSizeKw);
+  const [monthlyBill, setMonthlyBill] = useState(settings.monthlyBill);
+  const [tariff, setTariff] = useState(String(settings.tariff));
 
   useEffect(() => {
     let alive = true;
@@ -1157,8 +1151,14 @@ function SettingsView() {
         const row = data as unknown as ProfileRow | null;
         setFullName(row?.display_name ?? "");
         setPhone(row?.phone ?? "");
-        setCity(row?.city ?? "");
-        setTariff(row?.tariff_per_unit == null ? "" : String(row.tariff_per_unit));
+        if (row?.city && CITIES.includes(row.city)) {
+          setCity(row.city);
+          update({ city: row.city });
+        }
+        if (row?.tariff_per_unit != null) {
+          setTariff(String(row.tariff_per_unit));
+          update({ tariff: Number(row.tariff_per_unit) });
+        }
       }
       setLoading(false);
     })();
@@ -1173,17 +1173,38 @@ function SettingsView() {
       toast.error("Enter a valid 10-digit mobile number.");
       return;
     }
-    const tariffValue = tariff.trim() === "" ? null : Number(tariff);
-    if (tariffValue !== null && (!Number.isFinite(tariffValue) || tariffValue <= 0)) {
+    const tariffValue = tariff.trim() === "" ? settings.tariff : Number(tariff);
+    if (!Number.isFinite(tariffValue) || tariffValue <= 0) {
       toast.error("Enter a valid electricity tariff in ₹ per unit.");
       return;
     }
+    if (roofArea <= 0) {
+      toast.error("Enter a valid rooftop area in sq ft.");
+      return;
+    }
+    if (systemSizeKw <= 0) {
+      toast.error("Enter a valid system size in kW.");
+      return;
+    }
+    if (monthlyBill < 0) {
+      toast.error("Enter a valid monthly electricity bill.");
+      return;
+    }
+
+    // Persist to central shared store
+    update({
+      city,
+      roofArea,
+      systemSizeKw,
+      monthlyBill,
+      tariff: tariffValue,
+    });
 
     setSaving(true);
     const { data: auth } = await supabase.auth.getUser();
     if (!auth.user) {
       setSaving(false);
-      toast.error("Your session has expired. Please sign in again.");
+      toast.success("Settings saved locally.");
       return;
     }
 
@@ -1201,11 +1222,11 @@ function SettingsView() {
     setSaving(false);
 
     if (error) {
-      toast.error("Could not save your profile.", { description: error.message });
+      toast.error("Could not sync profile to server.", { description: error.message });
       return;
     }
     await qc.invalidateQueries({ queryKey: ["profile"] });
-    toast.success("Profile saved.");
+    toast.success("Settings and profile saved successfully.");
   };
 
   const signOut = async () => {
@@ -1217,35 +1238,58 @@ function SettingsView() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
-      <Panel title="Your profile" className="lg:col-span-2">
-        <form onSubmit={save} className="space-y-4">
+      <Panel title="Solar & Profile Settings" className="lg:col-span-2">
+        <form onSubmit={save} className="space-y-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="st-name" className="text-xs text-muted-foreground">Full name</Label>
-              <Input id="st-name" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="e.g. Ananya Sharma" disabled={loading} />
+              <Input id="st-name" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="e.g. Subham Chakraborty" disabled={loading} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="st-phone" className="text-xs text-muted-foreground">Phone</Label>
               <Input id="st-phone" type="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="10-digit mobile number" disabled={loading} className="tnum" />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="st-city" className="text-xs text-muted-foreground">City</Label>
-              <Input id="st-city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Bengaluru" disabled={loading} />
+              <Label htmlFor="st-city" className="text-xs text-muted-foreground">City (Location Profile)</Label>
+              <Select value={city} onValueChange={(v) => setCity(v)}>
+                <SelectTrigger id="st-city"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {CITIES.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground/70">Default: Kolkata (~4.8 h/day peak insolation)</p>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="st-tariff" className="text-xs text-muted-foreground">Electricity tariff (₹/unit)</Label>
-              <Input id="st-tariff" type="number" inputMode="decimal" min={0} step={0.25} value={tariff} onChange={(e) => setTariff(e.target.value)} placeholder="0.00" disabled={loading} className="tnum" />
-              <p className="text-[11px] text-muted-foreground/70">What you pay per unit — used to personalise your savings estimates</p>
+              <Input id="st-tariff" type="number" inputMode="decimal" min={0} step={0.25} value={tariff} onChange={(e) => setTariff(e.target.value)} placeholder="8.00" disabled={loading} className="tnum" />
+              <p className="text-[11px] text-muted-foreground/70">Base utility rate used across all financial ROI models</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="st-roof" className="text-xs text-muted-foreground">Roof Area (sq ft)</Label>
+              <Input id="st-roof" type="number" min={50} step={50} value={roofArea} onChange={(e) => setRoofArea(Number(e.target.value))} disabled={loading} className="tnum" />
+              <p className="text-[11px] text-muted-foreground/70">Gross available rooftop space</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="st-kw" className="text-xs text-muted-foreground">System Size (kW)</Label>
+              <Input id="st-kw" type="number" min={0.5} step={0.5} value={systemSizeKw} onChange={(e) => setSystemSizeKw(Number(e.target.value))} disabled={loading} className="tnum" />
+              <p className="text-[11px] text-muted-foreground/70">Capacity simulated across Overview and Forecast</p>
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="st-bill" className="text-xs text-muted-foreground">Monthly Electricity Bill (₹)</Label>
+              <Input id="st-bill" type="number" min={0} step={100} value={monthlyBill} onChange={(e) => setMonthlyBill(Number(e.target.value))} disabled={loading} className="tnum" />
+              <p className="text-[11px] text-muted-foreground/70">Used to determine consumption offset and net-zero viability</p>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-3 pt-1">
+          <div className="flex flex-wrap items-center gap-3 pt-2">
             <Button type="submit" disabled={loading || saving}>{saving ? "Saving…" : "Save changes"}</Button>
             {loading && <span className="text-xs text-muted-foreground">Loading your profile…</span>}
           </div>
         </form>
       </Panel>
 
-      <Panel title="Account">
+      <Panel title="Account & System Parameters">
         <dl className="space-y-2.5 text-sm">
           <div className="flex justify-between gap-4 border-b pb-2">
             <dt className="text-muted-foreground">Email</dt>
@@ -1254,6 +1298,18 @@ function SettingsView() {
           <div className="flex justify-between gap-4 border-b pb-2">
             <dt className="text-muted-foreground">Role</dt>
             <dd className="text-forest">Homeowner</dd>
+          </div>
+          <div className="flex justify-between gap-4 border-b pb-2">
+            <dt className="text-muted-foreground">Performance Ratio</dt>
+            <dd className="tnum text-forest">{(settings.performanceRatio * 100).toFixed(0)}%</dd>
+          </div>
+          <div className="flex justify-between gap-4 border-b pb-2">
+            <dt className="text-muted-foreground">Grid CO₂ Factor</dt>
+            <dd className="tnum text-forest">{settings.gridCo2Factor} kg/kWh</dd>
+          </div>
+          <div className="flex justify-between gap-4 border-b pb-2">
+            <dt className="text-muted-foreground">Annual Degradation</dt>
+            <dd className="tnum text-forest">{(settings.degradation * 100).toFixed(1)}%/yr</dd>
           </div>
         </dl>
         <Button variant="outline" className="mt-4 w-full" onClick={signOut}>
@@ -1270,9 +1326,10 @@ function SettingsView() {
 
 // Rotating demo templates so "Create sample report" produces a varied list.
 const SAMPLE_REPORTS = [
+  { kw: 3, city: "Kolkata" },
+  { kw: 5, city: "Kolkata" },
   { kw: 2, city: "Pune" },
-  { kw: 3, city: "Bengaluru" },
-  { kw: 5, city: "Chennai" },
+  { kw: 4, city: "Chennai" },
 ];
 
 function MyReports() {
