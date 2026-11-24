@@ -113,10 +113,9 @@ function AuthPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Trigger the lotus bloom + card fade, then navigate after the animation.
   const triggerSuccess = (to: string) => {
     setSuccess(true);
-    setTimeout(() => navigate({ to, replace: true }), 600);
+    requestAnimationFrame(() => navigate({ to, replace: true }));
   };
 
   const spawnRipple = (e: React.MouseEvent<HTMLButtonElement>) => {
