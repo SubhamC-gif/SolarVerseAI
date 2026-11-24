@@ -1,0 +1,220 @@
+@keyframes advisor-background-drift {
+  from { background-position: 50% 45%; }
+  to { background-position: 52% 55%; }
+}
+
+@keyframes advisor-step-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.advisor-page {
+  --advisor-heading: #174b38;
+  --advisor-body: #46564b;
+  --advisor-muted: #788477;
+  --advisor-accent: #b86c25;
+  --advisor-green: #087d55;
+  --advisor-gold: #d99a36;
+  min-height: 100vh;
+  color: var(--advisor-body);
+  background-color: #efe4d7;
+  background-image: linear-gradient(rgba(255, 248, 237, 0.62), rgba(255, 248, 237, 0.72)), var(--advisor-wallpaper);
+  background-size: auto, cover;
+  background-position: center, 50% 45%;
+  background-repeat: no-repeat;
+  animation: advisor-background-drift 42s ease-in-out infinite alternate;
+}
+
+.advisor-main {
+  min-height: calc(100vh - 260px);
+}
+
+.advisor-eyebrow,
+.advisor-recommendation-label {
+  color: var(--advisor-accent);
+}
+
+.advisor-title,
+.advisor-main h2,
+.advisor-chart-title {
+  color: var(--advisor-heading);
+}
+
+.advisor-progress-number {
+  border-color: rgba(217, 154, 54, 0.45);
+  transition: color 220ms ease, background-color 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+}
+
+.advisor-progress-number.is-complete,
+.advisor-progress-number.is-active {
+  border-color: var(--advisor-green);
+  background: linear-gradient(145deg, #0a8b60, #075f43);
+  color: #fff8ed;
+  box-shadow: 0 4px 12px rgba(8, 125, 85, 0.2);
+}
+
+.advisor-progress-number.is-active {
+  box-shadow: 0 0 0 4px rgba(217, 154, 54, 0.18), 0 4px 12px rgba(8, 125, 85, 0.22);
+}
+
+.advisor-progress-number.is-upcoming {
+  background: rgba(255, 248, 237, 0.8);
+  color: var(--advisor-muted);
+}
+
+.advisor-progress-label { color: var(--advisor-muted); }
+.advisor-progress-label.is-active { color: var(--advisor-heading); font-weight: 600; }
+.advisor-progress-line { background: rgba(217, 154, 54, 0.38); transition: background-color 240ms ease; }
+.advisor-progress-line.is-complete { background: var(--advisor-green); }
+
+.advisor-step-card {
+  border-color: rgba(217, 154, 54, 0.42);
+  border-radius: 18px;
+  background: rgba(255, 248, 237, 0.92);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 18px 46px rgba(71, 42, 23, 0.12), inset 0 1px rgba(255, 255, 255, 0.85);
+  animation: advisor-step-enter 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.advisor-step-card label { color: var(--advisor-heading); }
+.advisor-step-card p.text-xs,
+.advisor-step-card .text-muted-foreground { color: var(--advisor-muted); }
+
+.advisor-page input,
+.advisor-select {
+  border-color: rgba(112, 95, 69, 0.22);
+  border-radius: 9px;
+  background: rgba(255, 252, 247, 0.88);
+  color: var(--advisor-body);
+  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.advisor-page input:focus,
+.advisor-select:focus {
+  border-color: var(--advisor-gold);
+  background: #fffaf2;
+  box-shadow: 0 0 0 3px rgba(217, 154, 54, 0.16);
+}
+
+.advisor-chip {
+  border-color: rgba(8, 125, 85, 0.28);
+  background: rgba(255, 252, 247, 0.72);
+  color: var(--advisor-body);
+}
+
+.advisor-chip:hover,
+.advisor-chip.is-selected {
+  border-color: var(--advisor-green);
+  background: linear-gradient(135deg, #0a875d, #075f43);
+  color: #fff8ed;
+  box-shadow: 0 5px 14px rgba(8, 125, 85, 0.18);
+}
+
+.advisor-primary {
+  border: 1px solid rgba(217, 154, 54, 0.42);
+  background: linear-gradient(135deg, #0a875d, #07583f);
+  color: #fff8ed;
+  box-shadow: 0 7px 18px rgba(8, 86, 62, 0.18);
+  transition: transform 180ms ease, box-shadow 180ms ease, background-position 240ms ease;
+  background-size: 150% 150%;
+}
+
+.advisor-primary:hover:not(:disabled) {
+  background-position: 100% 50%;
+  box-shadow: 0 9px 22px rgba(8, 86, 62, 0.24), 0 0 0 3px rgba(217, 154, 54, 0.16);
+}
+
+.advisor-secondary {
+  border-color: rgba(23, 75, 56, 0.48);
+  background: rgba(255, 248, 237, 0.82);
+  color: var(--advisor-heading);
+}
+
+.advisor-secondary:hover:not(:disabled) {
+  border-color: var(--advisor-gold);
+  background: #fff3de;
+  color: var(--advisor-heading);
+}
+
+.advisor-recommendation {
+  border-color: rgba(217, 154, 54, 0.38);
+  background: rgba(255, 248, 237, 0.86);
+  box-shadow: 0 8px 22px rgba(71, 42, 23, 0.07);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background-color 180ms ease;
+}
+
+.advisor-recommendation:hover { transform: translateY(-3px); box-shadow: 0 14px 28px rgba(71, 42, 23, 0.13); }
+.advisor-recommendation.is-selected { border-color: var(--advisor-green); background: rgba(255, 251, 244, 0.98); box-shadow: 0 0 0 2px rgba(8, 125, 85, 0.16), 0 14px 30px rgba(8, 86, 62, 0.12); }
+.advisor-capacity { color: var(--advisor-green); }
+.advisor-recommendation-details { color: var(--advisor-muted); }
+.advisor-metrics { border-color: rgba(217, 154, 54, 0.35); background: rgba(217, 154, 54, 0.35); }
+.advisor-metric { background: rgba(255, 248, 237, 0.94); }
+.advisor-metric p:first-child { color: var(--advisor-muted); }
+.advisor-metric p:last-child { color: var(--advisor-green); }
+.advisor-chart { border: 1px solid rgba(217, 154, 54, 0.3); border-radius: 14px; background: rgba(255, 248, 237, 0.82); padding: 14px; }
+.advisor-assumptions { border: 1px solid rgba(217, 154, 54, 0.32); background: rgba(255, 248, 237, 0.8); }
+
+.advisor-footer footer {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(120deg, #103f32 0%, #155c43 30%, #8b482b 70%, #c07832 100%);
+  color: #fff4df;
+}
+
+.advisor-footer footer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.1;
+  background-image: repeating-radial-gradient(ellipse at 18% 20%, transparent 0 18px, rgba(255, 224, 163, 0.44) 19px 20px, transparent 21px 38px);
+}
+
+.advisor-footer footer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 80% 0%, rgba(255, 194, 92, 0.25), transparent 48%);
+  animation: advisor-footer-light 12s ease-in-out infinite alternate;
+}
+
+@keyframes advisor-footer-light {
+  from { opacity: 0.45; }
+  to { opacity: 0.9; }
+}
+
+.advisor-footer footer > div { position: relative; z-index: 1; }
+.advisor-footer footer > div:first-child > div:not(:first-child) p { color: #ffd28a; opacity: 1; }
+.advisor-footer footer ul { color: #f3ebdd; opacity: 1; }
+.advisor-footer footer ul li { transition: color 160ms ease; }
+.advisor-footer footer ul li:hover { color: #ffe0a3; }
+.advisor-footer footer > div:last-child { border-color: rgba(255, 244, 223, 0.2); color: #e6d7c2; opacity: 1; }
+.advisor-footer footer a { color: #fff4df; }
+.advisor-footer footer a:hover { color: #ffe0a3; }
+.advisor-footer footer .text-primary,
+.advisor-footer footer .font-display { color: #fff4df; }
+
+@media (max-width: 640px) {
+  .advisor-main { padding: 2rem 1rem; }
+  .advisor-main h1 { font-size: 2rem; }
+  .advisor-progress { gap: 0.35rem; }
+  .advisor-progress-step { gap: 0.3rem; }
+  .advisor-step-card { padding: 1.25rem; }
+  .advisor-actions button { min-height: 2.75rem; }
+  .advisor-recommendation { padding: 1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .advisor-page,
+  .advisor-step-card,
+  .advisor-footer footer::after {
+    animation: none !important;
+  }
+  .advisor-page *,
+  .advisor-page *::before,
+  .advisor-page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
