@@ -48,7 +48,7 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 function Advisor() {
   const [step, setStep] = useState(0);
   const [f, setF] = useState({
-    state: "Karnataka", city: "Bengaluru", pin: "", units: "350", bill: "", tariff: String(ASSUMPTIONS.tariff),
+    state: "West Bengal", city: "Kolkata", pin: "", units: "350", bill: "", tariff: String(ASSUMPTIONS.tariff),
     roof: "600", direction: "South", tilt: "15", shading: "None", roofType: "RCC flat",
     budget: "300000", battery: "No", grid: "Grid-connected", goal: "Bill savings",
   });

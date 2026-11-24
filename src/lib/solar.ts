@@ -8,12 +8,12 @@ export const MONTHLY_FACTORS = [0.085, 0.088, 0.097, 0.098, 0.096, 0.078, 0.068,
 
 export const ASSUMPTIONS = {
   specificYield: 1450, // kWh per kWp per year, typical-year
-  panelWatt: 540,
+  panelWatt: 550,
   sqftPerKw: 100, // shadow-free area per kWp
   costPerKw: 55000, // ₹ per kWp, on-grid, indicative
   batteryCostPerKwh: 18000,
   tariff: 8, // ₹ per kWh
-  emissionFactor: 0.716, // kg CO₂ per kWh, configurable grid factor
+  emissionFactor: 0.82, // kg CO₂ per kWh (aligned to standard Indian grid emission factor)
   degradation: 0.005,
   maintenancePerKw: 500,
 };

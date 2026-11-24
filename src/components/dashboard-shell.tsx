@@ -27,12 +27,15 @@ function NavLinks({ nav, onNavigate }: { nav: NavItem[]; onNavigate?: () => void
           }}
           activeOptions={{ exact: !!exact }}
           className={cn(
-            "nav-item group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-all duration-300 hover:translate-x-1 hover:bg-muted hover:text-forest",
-            active ? "bg-forest text-forest-foreground" : "text-muted-foreground"
+            "nav-item relative group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-all duration-300 hover:translate-x-1 hover:bg-muted hover:text-forest",
+            active ? "bg-forest text-forest-foreground font-medium shadow-sm" : "text-muted-foreground"
           )}
           activeProps={active === undefined ? { className: "!bg-forest !text-forest-foreground" } : undefined}
         >
-          <I className="nav-icon h-4 w-4 shrink-0" /> <span className="truncate">{label}</span>
+          {active && (
+            <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r bg-amber-400 shadow-[0_0_8px_rgba(255,194,26,0.8)]" />
+          )}
+          <I className={cn("nav-icon h-4 w-4 shrink-0 transition-colors", active ? "text-amber-400" : "")} /> <span className="truncate">{label}</span>
         </Link>
       ))}
     </nav>

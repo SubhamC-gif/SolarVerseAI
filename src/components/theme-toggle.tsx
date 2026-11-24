@@ -2,6 +2,7 @@ import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { THEME_STORAGE_KEY, type Theme } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
 export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>("light");
@@ -24,7 +25,7 @@ export function ThemeToggle() {
     setTheme(next);
   };
 
-  const Icon = theme === "dark" ? Sun : Moon;
+  const isDark = theme === "dark";
 
   return (
     <Button
@@ -34,8 +35,25 @@ export function ThemeToggle() {
       onClick={toggle}
       aria-label={`Switch to ${next} mode`}
       title={`Switch to ${next} mode`}
+      className="relative overflow-hidden group hover:border-amber-400/60"
     >
-      <Icon />
+      {/* Sun/Moon icon morph transition */}
+      <Sun
+        className={cn(
+          "h-4 w-4 transition-all duration-300 transform",
+          isDark
+            ? "rotate-90 scale-0 opacity-0"
+            : "rotate-0 scale-100 opacity-100 text-amber-500"
+        )}
+      />
+      <Moon
+        className={cn(
+          "absolute h-4 w-4 transition-all duration-300 transform",
+          isDark
+            ? "rotate-0 scale-100 opacity-100 text-amber-400"
+            : "-rotate-90 scale-0 opacity-0"
+        )}
+      />
     </Button>
   );
 }

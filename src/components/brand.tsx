@@ -87,14 +87,47 @@ export function SiteFooter() {
   );
 }
 
-export function Metric({ label, value, unit, hint }: { label: string; value: string; unit?: string; hint?: string }) {
+export function Metric({
+  label,
+  value,
+  unit,
+  hint,
+  icon: Icon,
+  trend,
+}: {
+  label: string;
+  value: string;
+  unit?: string;
+  hint?: string;
+  icon?: React.ElementType;
+  trend?: { value: string; positive?: boolean };
+}) {
   return (
-    <div className="rounded-lg border bg-card p-5 shadow-soft">
-      <p className="eyebrow">{label}</p>
-      <p className="mt-3 font-display text-3xl font-light text-forest tnum">
-        {value}{unit && <span className="ml-1 text-base text-muted-foreground">{unit}</span>}
-      </p>
-      {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
+    <div className="group relative rounded-lg border bg-card p-5 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-amber-400/50 hover:shadow-lift overflow-hidden">
+      <div className="flex items-center justify-between gap-2">
+        <p className="eyebrow truncate">{label}</p>
+        {Icon && (
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary transition-transform duration-300 group-hover:scale-110">
+            <Icon className="h-4 w-4" />
+          </div>
+        )}
+      </div>
+      <div className="mt-3 flex items-baseline justify-between gap-2">
+        <p className="font-display text-3xl font-light text-forest tnum truncate">
+          {value}{unit && <span className="ml-1 text-base text-muted-foreground">{unit}</span>}
+        </p>
+        {trend && (
+          <span
+            className={cn(
+              "inline-flex items-center text-xs font-medium tnum",
+              trend.positive ? "text-primary" : "text-amber-500"
+            )}
+          >
+            {trend.value}
+          </span>
+        )}
+      </div>
+      {hint && <p className="mt-1 text-xs text-muted-foreground truncate">{hint}</p>}
     </div>
   );
 }

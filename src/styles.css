@@ -56,92 +56,99 @@
 :root {
   color-scheme: light;
   --radius: 0.5rem;
-  --background: oklch(0.982 0.006 100);
-  --foreground: oklch(0.25 0.03 165);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.25 0.03 165);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.25 0.03 165);
-  --primary: oklch(0.52 0.13 158);
-  --primary-foreground: oklch(0.99 0.005 105);
-  --secondary: oklch(0.955 0.014 150);
-  --secondary-foreground: oklch(0.32 0.06 160);
-  --muted: oklch(0.955 0.014 150);
-  --muted-foreground: oklch(0.5 0.02 160);
-  --accent: oklch(0.975 0.022 95);
-  --accent-foreground: oklch(0.32 0.06 160);
-  --destructive: oklch(0.62 0.16 25);
-  --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.915 0.012 150);
-  --input: oklch(0.915 0.012 150);
-  --ring: oklch(0.62 0.13 158);
-  --forest: oklch(0.3 0.06 160);
-  --forest-foreground: oklch(0.98 0.01 105);
-  --inverse: oklch(0.3 0.06 160);
-  --inverse-foreground: oklch(0.97 0.012 105);
-  --solar: oklch(0.85 0.14 85);
-  --solar-foreground: oklch(0.3 0.05 80);
-  --lime: oklch(0.84 0.17 120);
-  --cream: oklch(0.97 0.022 95);
-  --success: oklch(0.56 0.14 150);
-  --warning: oklch(0.72 0.14 75);
-  --info: oklch(0.56 0.12 245);
-  --stage: oklch(0.955 0.016 150);
-  --stage-foreground: oklch(0.25 0.04 160);
-  --stage-muted: oklch(0.46 0.02 160);
-  --stage-accent: oklch(0.5 0.16 255);
-  --chart-1: oklch(0.52 0.13 158);
-  --chart-2: oklch(0.85 0.14 85);
-  --chart-3: oklch(0.3 0.06 160);
-  --chart-4: oklch(0.84 0.17 120);
-  --chart-5: oklch(0.56 0.12 245);
-  --shadow-soft: 0 1px 2px oklch(0.3 0.06 160 / 0.04), 0 8px 24px -12px oklch(0.3 0.06 160 / 0.12);
-  --shadow-lift: 0 2px 4px oklch(0.3 0.06 160 / 0.05), 0 24px 48px -20px oklch(0.3 0.06 160 / 0.25);
+  --background: #FAF9F5;
+  --foreground: #0A3D2A;
+  --card: #FFFFFF;
+  --card-foreground: #0A3D2A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0A3D2A;
+  --primary: #0A7A4F;
+  --primary-foreground: #FAF9F5;
+  --secondary: #F0EFEA;
+  --secondary-foreground: #0A3D2A;
+  --muted: #F2F1EC;
+  --muted-foreground: #5A6D63;
+  --accent: #FFC21A;
+  --accent-foreground: #070A0D;
+  --destructive: #DC2626;
+  --destructive-foreground: #FAF9F5;
+  --border: #E5E4DE;
+  --input: #E5E4DE;
+  --ring: #0A7A4F;
+  --forest: #0A3D2A;
+  --forest-foreground: #FAF9F5;
+  --inverse: #0A3D2A;
+  --inverse-foreground: #FAF9F5;
+  --solar: #FFC21A;
+  --solar-foreground: #070A0D;
+  --lime: #84CC16;
+  --cream: #FAF9F5;
+  --success: #0A7A4F;
+  --warning: #FF9F0A;
+  --info: #0284C7;
+  --stage: #F2F1EC;
+  --stage-foreground: #0A3D2A;
+  --stage-muted: #5A6D63;
+  --stage-accent: #0A7A4F;
+  --chart-1: #0A7A4F;
+  --chart-2: #FFC21A;
+  --chart-3: #0A3D2A;
+  --chart-4: #FF9F0A;
+  --chart-5: #64748B;
+  --shadow-soft: 0 1px 3px rgba(10, 61, 42, 0.05), 0 10px 24px -10px rgba(10, 61, 42, 0.08);
+  --shadow-lift: 0 4px 6px rgba(10, 61, 42, 0.06), 0 20px 40px -15px rgba(10, 61, 42, 0.15);
+
+  /* Motion Tokens */
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-fast: 150ms;
+  --motion-normal: 300ms;
+  --motion-slow: 600ms;
+  --motion-ambient: 120s;
 }
 
 .dark {
   color-scheme: dark;
-  --background: oklch(0.165 0.018 165);
-  --foreground: oklch(0.95 0.012 110);
-  --card: oklch(0.21 0.022 165);
-  --card-foreground: oklch(0.95 0.012 110);
-  --popover: oklch(0.23 0.024 165);
-  --popover-foreground: oklch(0.95 0.012 110);
-  --primary: oklch(0.76 0.14 155);
-  --primary-foreground: oklch(0.17 0.02 165);
-  --secondary: oklch(0.27 0.026 165);
-  --secondary-foreground: oklch(0.94 0.02 150);
-  --muted: oklch(0.26 0.024 165);
-  --muted-foreground: oklch(0.73 0.02 160);
-  --accent: oklch(0.29 0.03 165);
-  --accent-foreground: oklch(0.95 0.02 150);
-  --destructive: oklch(0.68 0.17 25);
-  --destructive-foreground: oklch(0.17 0.02 165);
-  --border: oklch(0.31 0.025 165);
-  --input: oklch(0.31 0.025 165);
-  --ring: oklch(0.74 0.13 155);
-  --forest: oklch(0.94 0.03 150);
-  --forest-foreground: oklch(0.17 0.02 165);
-  --inverse: oklch(0.125 0.016 165);
-  --inverse-foreground: oklch(0.92 0.02 130);
-  --solar: oklch(0.85 0.14 85);
-  --solar-foreground: oklch(0.9 0.1 85);
-  --lime: oklch(0.84 0.17 120);
-  --cream: oklch(0.25 0.03 165);
-  --success: oklch(0.74 0.15 150);
-  --warning: oklch(0.8 0.14 80);
-  --info: oklch(0.72 0.12 245);
-  --stage: oklch(0.12 0.01 265);
-  --stage-foreground: oklch(0.98 0 0);
-  --stage-muted: oklch(0.72 0.01 265);
-  --stage-accent: oklch(0.85 0.12 215);
-  --chart-1: oklch(0.76 0.14 155);
-  --chart-2: oklch(0.85 0.14 85);
-  --chart-3: oklch(0.94 0.03 150);
-  --chart-4: oklch(0.84 0.17 120);
-  --chart-5: oklch(0.72 0.12 245);
-  --shadow-soft: 0 1px 2px oklch(0 0 0 / 0.3), 0 8px 24px -12px oklch(0 0 0 / 0.5);
-  --shadow-lift: 0 2px 4px oklch(0 0 0 / 0.3), 0 24px 48px -20px oklch(0 0 0 / 0.6);
+  --background: #070A0D;
+  --foreground: #FAF9F5;
+  --card: #0D1318;
+  --card-foreground: #FAF9F5;
+  --popover: #0D1318;
+  --popover-foreground: #FAF9F5;
+  --primary: #0A7A4F;
+  --primary-foreground: #FAF9F5;
+  --secondary: #131A21;
+  --secondary-foreground: #FAF9F5;
+  --muted: #131A21;
+  --muted-foreground: #8B9B93;
+  --accent: #FFC21A;
+  --accent-foreground: #070A0D;
+  --destructive: #EF4444;
+  --destructive-foreground: #FAF9F5;
+  --border: #1B242D;
+  --input: #1B242D;
+  --ring: #0A7A4F;
+  --forest: #FAF9F5;
+  --forest-foreground: #070A0D;
+  --inverse: #FAF9F5;
+  --inverse-foreground: #070A0D;
+  --solar: #FFC21A;
+  --solar-foreground: #070A0D;
+  --lime: #84CC16;
+  --cream: #131A21;
+  --success: #0A7A4F;
+  --warning: #FF9F0A;
+  --info: #0284C7;
+  --stage: #070A0D;
+  --stage-foreground: #FAF9F5;
+  --stage-muted: #8B9B93;
+  --stage-accent: #FFC21A;
+  --chart-1: #0A7A4F;
+  --chart-2: #FFC21A;
+  --chart-3: #1B4D3E;
+  --chart-4: #FF9F0A;
+  --chart-5: #64748B;
+  --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.4), 0 10px 24px -10px rgba(0, 0, 0, 0.6);
+  --shadow-lift: 0 4px 6px rgba(0, 0, 0, 0.5), 0 20px 40px -15px rgba(0, 0, 0, 0.8);
 }
 
 @layer base {
@@ -376,14 +383,158 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.45) 50%, transparent 65%);
+    background: linear-gradient(105deg, transparent 35%, rgba(255, 194, 26, 0.4) 50%, transparent 65%);
     transform: translateX(-120%);
     pointer-events: none;
   }
 
   .btn-shine:hover::after {
-    animation: shine 0.9s ease;
+    animation: shine 0.9s var(--motion-ease);
   }
+}
+
+/* ---------------------------------------------------------------------------
+ * Phase 3 Live Theme Animations (Ambient, Particles & Interactive)
+ * --------------------------------------------------------------------------- */
+
+@keyframes rotate-clockwise {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rotate-counter {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes float-particle {
+  0% {
+    transform: translateY(105vh) scale(0.6);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.7;
+  }
+  85% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-5vh) scale(1.1);
+    opacity: 0;
+  }
+}
+
+@keyframes blob-drift-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(60px, -40px, 0) scale(1.1); }
+}
+
+@keyframes blob-drift-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-50px, 50px, 0) scale(1.12); }
+}
+
+@keyframes breathing-glow {
+  0%, 100% { box-shadow: 0 0 10px rgba(10, 122, 79, 0.2); }
+  50% { box-shadow: 0 0 25px rgba(255, 194, 26, 0.45); }
+}
+
+/* Motion Mode: Full / Calm / Off */
+html[data-motion="off"] *,
+html[data-motion="off"] *::before,
+html[data-motion="off"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+html[data-motion="calm"] .animate-particle-float,
+html[data-motion="calm"] .animate-sun-burst-120s,
+html[data-motion="calm"] .animate-mandala-rotate,
+html[data-motion="calm"] .animate-mandala-counter-rotate {
+  animation-play-state: paused;
+}
+
+/* Pause ambient loops when tab is hidden */
+@media (prefers-reduced-motion: no-preference) {
+  .animate-sun-burst-120s {
+    animation: rotate-clockwise 120s linear infinite;
+  }
+  .animate-mandala-rotate {
+    animation: rotate-clockwise 75s linear infinite;
+  }
+  .animate-mandala-counter-rotate {
+    animation: rotate-counter 90s linear infinite;
+  }
+  .animate-blob-drift-1 {
+    animation: blob-drift-a 18s ease-in-out infinite;
+  }
+  .animate-blob-drift-2 {
+    animation: blob-drift-b 24s ease-in-out infinite;
+  }
+  .animate-particle-float {
+    animation: float-particle linear infinite;
+  }
+  .cta-breathing {
+    animation: breathing-glow 4s ease-in-out infinite;
+  }
+}
+
+/* Universal Button / Interactive Controls */
+button,
+[role="button"],
+.interactive-chip {
+  transition: transform var(--motion-fast) var(--motion-ease),
+              box-shadow var(--motion-fast) var(--motion-ease),
+              background-color var(--motion-normal) var(--motion-ease),
+              border-color var(--motion-normal) var(--motion-ease);
+}
+
+button:not(:disabled):hover,
+[role="button"]:not([aria-disabled="true"]):hover {
+  transform: translateY(-1.5px);
+}
+
+button:not(:disabled):active,
+[role="button"]:not([aria-disabled="true"]):active {
+  transform: scale(0.97);
+}
+
+/* Amber Top Border Grow on Cards */
+.bg-card {
+  position: relative;
+  transition: transform var(--motion-normal) var(--motion-ease),
+              box-shadow var(--motion-normal) var(--motion-ease),
+              border-color var(--motion-normal) var(--motion-ease);
+}
+
+.bg-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #FFC21A, transparent);
+  opacity: 0;
+  transform: scaleX(0.2);
+  transition: opacity var(--motion-normal) var(--motion-ease),
+              transform var(--motion-normal) var(--motion-ease);
+  pointer-events: none;
+}
+
+.bg-card:hover::before {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+/* Inputs Focus Glow */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(10, 122, 79, 0.25), 0 0 12px rgba(255, 194, 26, 0.2);
+  border-color: #0A7A4F !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
