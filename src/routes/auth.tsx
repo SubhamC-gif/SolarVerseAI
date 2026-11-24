@@ -263,7 +263,7 @@ function AuthPage() {
             className={cn(
               "auth-card auth-card-border relative w-full max-w-md space-y-8 rounded-2xl border border-white/10 bg-[#0D1318]/85 p-8 shadow-2xl backdrop-blur-xl transition-all duration-300",
               shake && "auth-error-shake",
-              success && "auth-card-fade-out",
+              success && "auth-card-fade-out"
             )}
           >
             <div className="flex flex-col items-center text-center space-y-2">
@@ -320,10 +320,7 @@ function AuthPage() {
                 </div>
               )}
 
-              <div
-                className="auth-field space-y-2"
-                style={{ ["--i" as string]: mode === "up" ? 1 : 0 }}
-              >
+              <div className="auth-field space-y-2" style={{ ["--i" as string]: mode === "up" ? 1 : 0 }}>
                 <Label htmlFor="email">Email address</Label>
                 <div className="relative group">
                   <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
@@ -341,10 +338,7 @@ function AuthPage() {
                 </div>
               </div>
 
-              <div
-                className="auth-field space-y-2"
-                style={{ ["--i" as string]: mode === "up" ? 2 : 1 }}
-              >
+              <div className="auth-field space-y-2" style={{ ["--i" as string]: mode === "up" ? 2 : 1 }}>
                 <div className="flex items-center justify-between">
                   <Label htmlFor="pw">Password</Label>
                   {mode === "in" && (
@@ -442,9 +436,8 @@ function AuthPage() {
 
             <p className="text-center text-xs text-muted-foreground">
               By continuing, you agree to our{" "}
-              <button className="auth-link underline hover:text-primary">Terms of Service</button>{" "}
-              and <button className="auth-link underline hover:text-primary">Privacy Policy</button>
-              .
+              <button className="auth-link underline hover:text-primary">Terms of Service</button> and{" "}
+              <button className="auth-link underline hover:text-primary">Privacy Policy</button>.
             </p>
           </div>
         </div>
