@@ -546,66 +546,70 @@ textarea:focus {
 }
 
 /* ===========================================================================
- * Auth Scene — animated lotus login art
- * Only transform & opacity are animated for 60fps. Pauses when tab hidden.
+ * Auth Scene — the reference artwork (eclipse + petal flower + lotus bloom)
+ * Motion is layered ON TOP of the real artwork: the radially symmetric petal
+ * flower rotates slowly around the still eclipse, the lotus bloom rocks,
+ * floats and breathes inside a rotating ring of light.
+ * Only transform & opacity are animated. Pauses when the tab is hidden.
  * =========================================================================== */
 
-@keyframes auth-twinkle {
-  0%, 100% { opacity: 0.15; }
-  50% { opacity: 1; }
+@keyframes auth-flower-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes auth-rays-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
 }
 
 @keyframes auth-corona-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.85; }
-  50% { transform: scale(1.08); opacity: 1; }
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+  50% { transform: translate(-50%, -50%) scale(1.06); opacity: 1; }
 }
 
-@keyframes auth-rays-rotate {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to { transform: translate(-50%, -50%) rotate(360deg); }
-}
-
-@keyframes auth-mandala-cw {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to { transform: translate(-50%, -50%) rotate(360deg); }
-}
-
-@keyframes auth-mandala-ccw {
-  from { transform: translate(-50%, -50%) rotate(360deg); }
-  to { transform: translate(-50%, -50%) rotate(0deg); }
+@keyframes auth-lotus-rock {
+  0%, 100% { transform: rotate(-1.5deg); }
+  50% { transform: rotate(1.5deg); }
 }
 
 @keyframes auth-lotus-float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes auth-lotus-sway {
-  0%, 100% { transform: rotate(-2deg); }
-  50% { transform: rotate(2deg); }
+  50% { transform: translateY(-8px); }
 }
 
 @keyframes auth-lotus-breathe {
-  0%, 100% { filter: drop-shadow(0 0 24px rgba(255, 194, 26, 0.45)); }
-  50% { filter: drop-shadow(0 0 56px rgba(255, 194, 26, 0.8)); }
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.9; }
 }
 
-@keyframes auth-petal-bloom {
-  0% { transform: rotate(var(--rot, 0deg)) scale(0.72); opacity: 0.4; }
-  100% { transform: rotate(var(--rot, 0deg)) scale(1); opacity: 1; }
+@keyframes auth-twinkle {
+  0%, 100% { opacity: 0.12; }
+  50% { opacity: 1; }
+}
+
+@keyframes auth-mote {
+  0% { transform: translate3d(0, 0, 0) scale(0.6); opacity: 0; }
+  12% { opacity: 0.85; }
+  88% { opacity: 0.55; }
+  100% { transform: translate3d(var(--drift, 20px), -112dvh, 0) scale(1); opacity: 0; }
 }
 
 @keyframes auth-ripple {
-  0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0.55; }
-  100% { transform: translate(-50%, -50%) scale(2.6); opacity: 0; }
+  0% { transform: translate(-50%, -50%) scale(0.35); opacity: 0.5; }
+  100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; }
 }
 
-@keyframes auth-firefly {
-  0% { transform: translate3d(0, 0, 0) scale(0.6); opacity: 0; }
-  10% { opacity: 0.9; }
-  50% { transform: translate3d(var(--drift, 20px), -60vh, 0) scale(1); opacity: 0.9; }
-  90% { opacity: 0.6; }
-  100% { transform: translate3d(calc(var(--drift, 20px) * -1), -120vh, 0) scale(0.6); opacity: 0; }
+@keyframes auth-shoot {
+  0% { transform: translate3d(0, 0, 0) rotate(16deg) scaleX(0.2); opacity: 0; }
+  4% { opacity: 0.9; }
+  18% { transform: translate3d(-52vw, 30vh, 0) rotate(16deg) scaleX(1); opacity: 0; }
+  100% { transform: translate3d(-52vw, 30vh, 0) rotate(16deg) scaleX(1); opacity: 0; }
+}
+
+@keyframes auth-bloom {
+  0% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(255, 194, 26, 0)); }
+  100% { transform: scale(1.12); filter: drop-shadow(0 0 90px rgba(255, 194, 26, 0.95)); }
 }
 
 @keyframes auth-card-enter {
@@ -629,7 +633,7 @@ textarea:focus {
 }
 
 @keyframes auth-btn-breathe {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(10, 122, 79, 0.0), 0 8px 24px -8px rgba(10, 122, 79, 0.4); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(10, 122, 79, 0), 0 8px 24px -8px rgba(10, 122, 79, 0.4); }
   50% { box-shadow: 0 0 24px 2px rgba(255, 194, 26, 0.35), 0 10px 28px -8px rgba(10, 122, 79, 0.55); }
 }
 
@@ -646,25 +650,37 @@ textarea:focus {
   80% { transform: translateX(4px); }
 }
 
-@keyframes auth-success-bloom {
-  0% { transform: scale(1); filter: drop-shadow(0 0 24px rgba(255, 194, 26, 0.5)); }
-  100% { transform: scale(1.15); filter: drop-shadow(0 0 120px rgba(255, 194, 26, 1)); }
-}
-
 @keyframes auth-fade-out {
   from { opacity: 1; }
   to { opacity: 0; }
 }
 
-/* Scene base */
+@keyframes auth-ripple-dot {
+  to { transform: translate(-50%, -50%) scale(12); opacity: 0; }
+}
+
+/* --- Scene shell ---------------------------------------------------------- */
 .auth-scene {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background:
-    radial-gradient(ellipse at 50% 38%, rgba(10, 61, 42, 0.55) 0%, rgba(7, 10, 13, 0.2) 45%, rgba(7, 10, 13, 0.95) 100%),
-    #070A0D;
+  background: #050b14;
   pointer-events: none;
+}
+
+.auth-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 40%, rgba(14, 42, 66, 0.55) 0%, rgba(5, 11, 20, 0) 70%),
+    radial-gradient(ellipse 120% 80% at 50% 100%, rgba(255, 170, 40, 0.1) 0%, rgba(5, 11, 20, 0) 60%);
+}
+
+.auth-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 82% 72% at 50% 50%, rgba(2, 6, 12, 0) 38%, rgba(2, 6, 12, 0.88) 100%);
 }
 
 /* Parallax layers use shared CSS vars updated by rAF */
@@ -675,7 +691,160 @@ textarea:focus {
   will-change: transform;
 }
 
-/* Starfield */
+/* --- The artwork: exact 736x920 box, always fully visible ----------------- */
+.auth-art-box {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(100vw, 80dvh);
+  height: min(100dvh, 125vw);
+}
+
+.auth-art-base,
+.auth-art-flower,
+.auth-art-rays,
+.auth-art-lotus {
+  position: absolute;
+  inset: 0;
+  background-image: var(--art);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+/* Static plate: the whole artwork, edges feathered into the navy */
+.auth-art-base {
+  mask-image: radial-gradient(ellipse 78% 62% at 50% 50%, #000 52%, transparent 100%);
+}
+
+/* Rotating petal flower: a copy of the artwork clipped to the petal ring and
+ * spun around the eclipse centre. The ring is radially symmetric, so the
+ * rotation has no visible seam; the eclipse disc itself stays still. */
+.auth-art-flower {
+  transform-origin: 50% 36.5%;
+  animation: auth-flower-spin 80s linear infinite;
+  will-change: transform;
+  mask-image: radial-gradient(
+    ellipse 40% 32% at 50% 36.5%,
+    transparent 0 24%,
+    #000 34%,
+    #000 86%,
+    transparent 100%
+  );
+}
+
+/* Faint counter-rotating light rays behind the flower */
+.auth-art-rays {
+  background-image: repeating-conic-gradient(
+    from 0deg at 50% 36.5%,
+    rgba(255, 194, 26, 0.16) 0deg 3deg,
+    transparent 3deg 30deg
+  );
+  transform-origin: 50% 36.5%;
+  animation: auth-rays-spin 140s linear infinite;
+  opacity: 0.5;
+  mask-image: radial-gradient(
+    ellipse 52% 42% at 50% 36.5%,
+    transparent 0 36%,
+    #000 48%,
+    #000 78%,
+    transparent 100%
+  );
+}
+
+/* Pulsing corona around the still eclipse disc */
+.auth-art-corona {
+  position: absolute;
+  left: 50%;
+  top: 36.5%;
+  width: 27%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 194, 26, 0) 50%,
+    rgba(255, 194, 26, 0.3) 61%,
+    rgba(255, 150, 26, 0.12) 78%,
+    transparent 100%
+  );
+  box-shadow: 0 0 40px 10px rgba(255, 170, 40, 0.22), inset 0 0 30px rgba(255, 194, 26, 0.22);
+  animation: auth-corona-pulse 6s ease-in-out infinite;
+}
+
+/* Lotus bloom: rocks a few degrees (it is a front-facing flower, so a full
+ * turn would flip it upside-down) while it floats and breathes. */
+.auth-art-lotus-float {
+  position: absolute;
+  inset: 0;
+  animation: auth-lotus-float 6s ease-in-out infinite;
+}
+.auth-art-lotus {
+  transform-origin: 50% 85%;
+  animation: auth-lotus-rock 9s ease-in-out infinite;
+  will-change: transform;
+  mask-image: radial-gradient(
+    ellipse 40% 19% at 50% 85%,
+    transparent 0 24%,
+    #000 40%,
+    #000 84%,
+    transparent 100%
+  );
+}
+
+/* Rotating ring of light around the lotus + breathing glow */
+.auth-art-lotus-ring {
+  position: absolute;
+  inset: 0;
+  background-image: repeating-conic-gradient(
+    from 0deg at 50% 85%,
+    rgba(255, 194, 26, 0.14) 0deg 2deg,
+    transparent 2deg 24deg
+  );
+  transform-origin: 50% 85%;
+  animation: auth-flower-spin 46s linear infinite;
+  opacity: 0.6;
+  mask-image: radial-gradient(
+    ellipse 44% 21% at 50% 85%,
+    transparent 0 52%,
+    #000 64%,
+    #000 86%,
+    transparent 100%
+  );
+}
+
+.auth-art-lotus-glow {
+  position: absolute;
+  left: 50%;
+  top: 85%;
+  width: 62%;
+  aspect-ratio: 1.7;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    ellipse,
+    rgba(255, 194, 26, 0.35) 0%,
+    rgba(255, 150, 26, 0.12) 45%,
+    transparent 75%
+  );
+  filter: blur(6px);
+  animation: auth-lotus-breathe 5s ease-in-out infinite;
+}
+
+/* Water ripples under the bloom */
+.auth-ripple {
+  position: absolute;
+  left: 50%;
+  top: 96%;
+  width: 34%;
+  height: 9%;
+  border: 1.5px solid rgba(255, 194, 26, 0.4);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0.35);
+  animation: auth-ripple 6s ease-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+/* --- Sky: stars, dust motes, shooting star -------------------------------- */
 .auth-star {
   position: absolute;
   border-radius: 9999px;
@@ -684,136 +853,65 @@ textarea:focus {
   animation-delay: var(--delay, 0s);
 }
 
-/* Eclipse + corona */
-.auth-eclipse {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-}
-.auth-eclipse-disc {
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #1a1206 0%, #0a0805 55%, #050402 100%);
-  box-shadow:
-    0 0 0 2px rgba(255, 194, 26, 0.9),
-    0 0 30px 6px rgba(255, 194, 26, 0.55),
-    0 0 70px 18px rgba(255, 140, 26, 0.35),
-    inset 0 0 40px rgba(255, 194, 26, 0.15);
-  animation: auth-corona-pulse 6s ease-in-out infinite alternate;
-}
-.auth-rays {
-  position: absolute;
-  width: 520px;
-  height: 520px;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg, rgba(255, 194, 26, 0.18) 6deg, transparent 12deg,
-    transparent 30deg, rgba(255, 194, 26, 0.14) 36deg, transparent 42deg,
-    transparent 60deg, rgba(255, 194, 26, 0.18) 66deg, transparent 72deg,
-    transparent 90deg, rgba(255, 194, 26, 0.14) 96deg, transparent 102deg,
-    transparent 120deg, rgba(255, 194, 26, 0.18) 126deg, transparent 132deg,
-    transparent 150deg, rgba(255, 194, 26, 0.14) 156deg, transparent 162deg,
-    transparent 180deg, rgba(255, 194, 26, 0.18) 186deg, transparent 192deg,
-    transparent 210deg, rgba(255, 194, 26, 0.14) 216deg, transparent 222deg,
-    transparent 240deg, rgba(255, 194, 26, 0.18) 246deg, transparent 252deg,
-    transparent 270deg, rgba(255, 194, 26, 0.14) 276deg, transparent 282deg,
-    transparent 300deg, rgba(255, 194, 26, 0.18) 306deg, transparent 312deg,
-    transparent 330deg, rgba(255, 194, 26, 0.14) 336deg, transparent 342deg,
-    transparent 360deg
-  );
-  -webkit-mask: radial-gradient(circle, transparent 18%, #000 22%, #000 62%, transparent 70%);
-          mask: radial-gradient(circle, transparent 18%, #000 22%, #000 62%, transparent 70%);
-  animation: auth-rays-rotate 120s linear infinite;
-  opacity: 0.7;
-}
-
-/* Mandala rings */
-.auth-mandala {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0.1;
-  pointer-events: none;
-}
-.auth-mandala-outer { animation: auth-mandala-cw 90s linear infinite; }
-.auth-mandala-inner { animation: auth-mandala-ccw 140s linear infinite; opacity: 0.08; }
-
-/* Lotus composition */
-.auth-lotus-wrap {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-}
-.auth-lotus-float {
-  animation: auth-lotus-float 6s ease-in-out infinite;
-}
-.auth-lotus-sway {
-  animation: auth-lotus-sway 10s ease-in-out infinite alternate;
-  transform-origin: 50% 60%;
-}
-.auth-lotus-glow {
-  animation: auth-lotus-breathe 5s ease-in-out infinite alternate;
-}
-.auth-lotus-petal {
-  transform-origin: 50% 100%;
-  animation: auth-petal-bloom 3.5s ease-out both;
-  animation-delay: calc(var(--i, 0) * 0.12s);
-}
-
-/* Water line + ripples */
-.auth-water-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(255, 194, 26, 0.5), transparent);
-  box-shadow: 0 0 12px rgba(255, 194, 26, 0.4);
-}
-.auth-ripple {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 180px;
-  height: 60px;
-  border: 1.5px solid rgba(255, 194, 26, 0.6);
-  border-radius: 50%;
-  animation: auth-ripple 6s ease-out infinite;
-  animation-delay: var(--delay, 0s);
-}
-
-/* Fireflies */
-.auth-firefly {
+.auth-mote {
   position: absolute;
   bottom: -10px;
   border-radius: 9999px;
-  background: #FFC21A;
-  box-shadow: 0 0 8px 2px rgba(255, 194, 26, 0.8);
-  animation: auth-firefly var(--dur, 16s) linear infinite;
+  background: #ffc21a;
+  box-shadow: 0 0 8px 2px rgba(255, 194, 26, 0.75);
+  animation: auth-mote var(--dur, 16s) linear infinite;
   animation-delay: var(--delay, 0s);
 }
 
-/* Reflection */
-.auth-reflection {
+.auth-shooting-star {
   position: absolute;
-  left: 50%;
-  transform: translate(-50%, 0) scaleY(-1);
-  opacity: 0.15;
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent 70%);
-          mask-image: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent 70%);
-  filter: blur(0.5px);
+  top: 12%;
+  right: 8%;
+  width: 160px;
+  height: 2px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.9), transparent);
+  transform-origin: 100% 50%;
+  animation: auth-shoot 17s ease-in infinite;
+  animation-delay: 6s;
+  opacity: 0;
 }
 
-/* Card motion */
+/* --- Page shell ----------------------------------------------------------- */
+.auth-page {
+  background: #050b14;
+  /* The dark token block only re-declares variables; without this the card
+   * inherits <body>'s light-mode ink and labels/typed text go unreadable. */
+  color: var(--foreground);
+}
+.auth-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 11, 20, 0.55);
+}
+
+/* --- Glass card ----------------------------------------------------------- */
 .auth-card {
+  background: linear-gradient(180deg, rgba(8, 16, 28, 0.78), rgba(8, 16, 28, 0.62));
+  backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid rgba(255, 215, 120, 0.22);
+  border-radius: 24px;
+  box-shadow:
+    0 0 0 1px rgba(255, 194, 26, 0.06),
+    0 24px 60px -20px rgba(0, 0, 0, 0.7),
+    0 0 60px -10px rgba(255, 170, 40, 0.25);
   animation: auth-card-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+.auth-card input {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 215, 120, 0.18);
+}
+.auth-card input:focus-visible {
+  border-color: rgba(255, 194, 26, 0.6);
+  box-shadow: 0 0 0 3px rgba(255, 194, 26, 0.18);
+}
+
 .auth-field {
   opacity: 0;
   animation: auth-field-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -824,12 +922,14 @@ textarea:focus {
 .auth-card-border::before {
   content: "";
   position: absolute;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 1.5px;
-  background: linear-gradient(90deg, transparent, #FFC21A 50%, transparent);
+  background: linear-gradient(90deg, transparent, #ffc21a 50%, transparent);
   background-size: 200% 100%;
   animation: auth-top-border-travel 4s linear infinite;
-  border-radius: 16px 16px 0 0;
+  border-radius: 24px 24px 0 0;
   pointer-events: none;
 }
 
@@ -842,7 +942,8 @@ textarea:focus {
 .auth-submit::after {
   content: "";
   position: absolute;
-  top: 0; left: 0;
+  top: 0;
+  left: 0;
   width: 40%;
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
@@ -884,9 +985,6 @@ textarea:focus {
   pointer-events: none;
   z-index: 2;
 }
-@keyframes auth-ripple-dot {
-  to { transform: translate(-50%, -50%) scale(12); opacity: 0; }
-}
 
 /* Animated underline for links */
 .auth-link {
@@ -896,7 +994,8 @@ textarea:focus {
 .auth-link::after {
   content: "";
   position: absolute;
-  left: 0; bottom: -1px;
+  left: 0;
+  bottom: -1px;
   width: 0;
   height: 1px;
   background: currentColor;
@@ -909,59 +1008,51 @@ textarea:focus {
   animation: auth-error-shake 0.3s ease-in-out;
 }
 
-/* Success bloom on lotus */
-.auth-success .auth-lotus-glow {
-  animation: auth-success-bloom 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+/* Success: the lotus blooms as the card fades */
+.auth-success .auth-art-lotus-float {
+  animation: auth-bloom 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 .auth-card-fade-out {
   animation: auth-fade-out 0.6s ease-in forwards;
 }
 
-/* Pause scene when tab hidden */
+/* Pause the scene when the tab is hidden */
 html[data-scene-paused="true"] .auth-scene *,
 html[data-scene-paused="true"] .auth-scene *::before,
 html[data-scene-paused="true"] .auth-scene *::after {
   animation-play-state: paused !important;
 }
 
-/* Reduced motion: keep static lotus + simple fades only */
+/* Reduced motion: static artwork + simple fades only */
 @media (prefers-reduced-motion: reduce) {
-  .auth-scene .auth-mandala-outer,
-  .auth-scene .auth-mandala-inner,
-  .auth-scene .auth-rays,
-  .auth-scene .auth-lotus-wrap,
-  .auth-scene .auth-lotus-sway,
-  .auth-scene .auth-lotus-glow,
-  .auth-scene .auth-lotus-petal,
+  .auth-scene .auth-art-flower,
+  .auth-scene .auth-art-rays,
+  .auth-scene .auth-art-corona,
+  .auth-scene .auth-art-lotus,
+  .auth-scene .auth-art-lotus-float,
+  .auth-scene .auth-art-lotus-ring,
+  .auth-scene .auth-art-lotus-glow,
   .auth-scene .auth-ripple,
-  .auth-scene .auth-firefly,
+  .auth-scene .auth-mote,
   .auth-scene .auth-star,
-  .auth-scene .auth-eclipse-disc {
+  .auth-scene .auth-shooting-star {
     animation: none !important;
   }
-  .auth-scene .auth-lotus-petal {
-    opacity: 1 !important;
-    transform: rotate(var(--rot, 0deg)) scale(1) !important;
-  }
+  .auth-scene .auth-art-lotus-glow { opacity: 0.6; }
   .auth-layer { transform: none !important; }
   .auth-submit:not(:disabled) { animation: none !important; }
   .auth-card-border::before { animation: none !important; opacity: 0.6; }
 }
 
-/* Calm mode: fewer particles, no parallax, slower loops */
-html[data-motion="calm"] .auth-firefly,
+/* Calm mode (mobile / low-power): fewer particles, no parallax, slower loops */
+html[data-motion="calm"] .auth-mote,
 html[data-motion="calm"] .auth-star {
   animation-play-state: paused;
-  opacity: 0.4;
+  opacity: 0.35;
 }
-html[data-motion="calm"] .auth-layer {
-  transform: none !important;
-}
-html[data-motion="calm"] .auth-rays,
-html[data-motion="calm"] .auth-mandala-outer,
-html[data-motion="calm"] .auth-mandala-inner {
-  animation-duration: 300s !important;
-}
-html[data-motion="calm"] .auth-submit:not(:disabled) {
-  animation: none !important;
-}
+html[data-motion="calm"] .auth-shooting-star { display: none; }
+html[data-motion="calm"] .auth-layer { transform: none !important; }
+html[data-motion="calm"] .auth-art-flower { animation-duration: 220s !important; }
+html[data-motion="calm"] .auth-art-rays,
+html[data-motion="calm"] .auth-art-lotus-ring { animation-duration: 320s !important; }
+html[data-motion="calm"] .auth-submit:not(:disabled) { animation: none !important; }

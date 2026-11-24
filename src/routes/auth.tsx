@@ -244,24 +244,21 @@ function AuthPage() {
   ];
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-[#070A0D]">
-      {/* Animated lotus scene — behind everything */}
+    <div className="auth-page dark relative min-h-dvh w-full overflow-hidden">
+      {/* The reference artwork — rotating lotus flower behind everything */}
       <div className="absolute inset-0">
         <AuthScene success={success} />
       </div>
 
       {/* Mobile dimming so the card stays readable over the art */}
-      <div className="absolute inset-0 bg-[#070A0D]/55 md:hidden" />
+      <div className="auth-scrim md:hidden" />
 
-      <div className="relative z-10 flex min-h-screen">
-        {/* Left: art scene spacer (desktop only) */}
-        <div className="hidden md:block md:w-[55%]" aria-hidden />
-
-        {/* Right: login card */}
-        <div className="flex w-full items-center justify-center px-4 py-10 sm:px-6 md:w-[45%] lg:px-8">
+      <div className="relative z-10 flex min-h-dvh items-center justify-center px-4 py-10 sm:px-6 md:justify-end md:px-10 lg:px-16">
+        {/* Login card: right on desktop, centred on mobile */}
+        <div className="flex w-full items-center justify-center md:justify-end">
           <div
             className={cn(
-              "auth-card auth-card-border relative w-full max-w-md space-y-8 rounded-2xl border border-white/10 bg-[#0D1318]/85 p-8 shadow-2xl backdrop-blur-xl transition-all duration-300",
+              "auth-card auth-card-border relative w-full max-w-md space-y-8 p-6 transition-all duration-300 sm:p-8",
               shake && "auth-error-shake",
               success && "auth-card-fade-out"
             )}
@@ -284,7 +281,7 @@ function AuthPage() {
                   <div className="space-y-2">
                     <Label htmlFor="name">Your name</Label>
                     <div className="relative group">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
                       <Input
                         id="name"
                         type="text"
@@ -311,8 +308,8 @@ function AuthPage() {
                         )}
                         disabled={busy}
                       >
-                        <I className="h-5 w-5 text-primary" />
-                        <p className="mt-3 font-medium text-forest">{t}</p>
+                        <I className="h-5 w-5 text-accent" />
+                        <p className="mt-3 font-medium text-foreground">{t}</p>
                         <p className="mt-1 text-xs text-muted-foreground">{d}</p>
                       </button>
                     ))}
@@ -323,7 +320,7 @@ function AuthPage() {
               <div className="auth-field space-y-2" style={{ ["--i" as string]: mode === "up" ? 1 : 0 }}>
                 <Label htmlFor="email">Email address</Label>
                 <div className="relative group">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
                   <Input
                     id="email"
                     type="email"
@@ -342,13 +339,13 @@ function AuthPage() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="pw">Password</Label>
                   {mode === "in" && (
-                    <button type="button" className="auth-link text-xs text-primary font-medium">
+                    <button type="button" className="auth-link text-xs text-accent font-medium">
                       Forgot password?
                     </button>
                   )}
                 </div>
                 <div className="relative group">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
                   <Input
                     id="pw"
                     type={showPassword ? "text" : "password"}
@@ -377,7 +374,7 @@ function AuthPage() {
                 <div className="auth-field space-y-2" style={{ ["--i" as string]: 3 }}>
                   <Label htmlFor="city">City</Label>
                   <div className="relative group">
-                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
                     <Input
                       id="city"
                       type="text"
@@ -409,15 +406,12 @@ function AuthPage() {
                 )}
               </Button>
 
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-[#0D1318] px-2 text-muted-foreground">
-                    {mode === "in" ? "New to SolarVerse?" : "Already have an account?"}
-                  </span>
-                </div>
+              <div className="flex items-center gap-3 text-xs uppercase text-muted-foreground">
+                <span className="h-px flex-1 bg-border" />
+                <span>
+                  {mode === "in" ? "New to SolarVerse?" : "Already have an account?"}
+                </span>
+                <span className="h-px flex-1 bg-border" />
               </div>
 
               <Button

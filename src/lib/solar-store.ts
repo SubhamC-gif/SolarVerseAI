@@ -329,14 +329,14 @@ export function calculateSolarMetrics(settings: SolarSettings, customKw?: number
   
   // 12-month series
   let peakExpected = -1;
-  let peakMonth = MONTHS[0];
+  let peakMonth: string = MONTHS[0] ?? "Jan";
   let lowestExpected = Infinity;
-  let lowestMonth = MONTHS[0];
+  let lowestMonth: string = MONTHS[0] ?? "Jan";
   
   const monthlySeries: MonthlyMetric[] = MONTHS.map((month, i) => {
     const scale = cityProf.monthlySunScale[i] ?? 1.0;
     const monthSun = Number((cityProf.avgSunHours * scale).toFixed(1));
-    const days = DAYS_IN_MONTH[i];
+    const days = DAYS_IN_MONTH[i] ?? 30;
     // Monthly generation = kw * dailySunHours * days * PR * dir * shade
     const expected = Math.round(kw * monthSun * days * settings.performanceRatio * dirFactor * shadeFactor);
     const monthOffset = Math.min(expected, monthlyConsumptionUnits);
