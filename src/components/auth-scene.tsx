@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useRef } from "react";
-import artAsset from "@/assets/login-art.webp.asset.json";
+
+const eclipseArt =
+  "https://cdn.builder.io/api/v1/image/assets%2F93aaeeb2b96346949a27773e04861c15%2Ff55f2aa1496e4540a264905c001afccb?format=webp&width=800&height=1200";
+const lotusArt =
+  "https://cdn.builder.io/api/v1/image/assets%2F93aaeeb2b96346949a27773e04861c15%2Fa8248ef4b3ed4647b6b8bf32e986d2e5?format=webp&width=800&height=1200";
 
 /**
  * AuthScene — the reference artwork (eclipse + petal flower + lotus bloom)
@@ -100,7 +104,10 @@ export function AuthScene({ success = false }: { success?: boolean }) {
     <div
       ref={rootRef}
       className={`auth-scene ${success ? "auth-success" : ""}`}
-      style={{ ["--art" as string]: `url("${artAsset.url}")` }}
+      style={{
+        ["--art" as string]: `url("${eclipseArt}")`,
+        ["--lotus-art" as string]: `url("${lotusArt}")`,
+      }}
       aria-hidden
     >
       {/* 1. Navy base + vignette */}

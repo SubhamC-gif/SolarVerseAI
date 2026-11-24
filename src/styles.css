@@ -780,6 +780,10 @@ textarea:focus {
   animation: auth-lotus-float 6s ease-in-out infinite;
 }
 .auth-art-lotus {
+  background-image: var(--lotus-art);
+  background-size: 100% 100%;
+  background-position: center;
+  opacity: 0.38;
   transform-origin: 50% 85%;
   animation: auth-lotus-rock 9s ease-in-out infinite;
   will-change: transform;
