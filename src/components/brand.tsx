@@ -65,7 +65,7 @@ export function SiteNav() {
 
 export function SiteFooter() {
   return (
-    <footer className="bg-inverse text-inverse-foreground">
+    <footer className="site-footer relative isolate overflow-hidden bg-inverse text-inverse-foreground">
       <div className="mx-auto grid max-w-7xl gap-10 px-6 py-16 md:grid-cols-4">
         <div className="space-y-3">
           <Logo light />
