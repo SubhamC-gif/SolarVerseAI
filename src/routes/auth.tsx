@@ -61,7 +61,7 @@ function mapAuthError(error: unknown, mode: "in" | "up"): string {
           msg.includes("at least") ||
           msg.includes("minimum")))
     ) {
-      return "Password must be at least 6 characters.";
+      return "Please choose a different password.";
     }
   }
 
@@ -138,12 +138,6 @@ function AuthPage() {
     const cleanEmail = email.trim();
     if (!EMAIL_RE.test(cleanEmail)) {
       toast.error("Please enter a valid email address.");
-      setShake(true);
-      setTimeout(() => setShake(false), 320);
-      return;
-    }
-    if (mode === "up" && password.length < 6) {
-      toast.error("Password must be at least 6 characters.");
       setShake(true);
       setTimeout(() => setShake(false), 320);
       return;
@@ -351,7 +345,6 @@ function AuthPage() {
                     placeholder="••••••••"
                     className="pl-10 pr-10 h-11 transition-all focus:ring-2 focus:ring-primary/20"
                     required
-                    minLength={6}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={busy}
