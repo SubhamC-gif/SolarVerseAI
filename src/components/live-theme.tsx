@@ -137,6 +137,11 @@ export function LiveBackground() {
 
       {/* Surface contrast overlay preserving strict WCAG AA readability */}
       <div className="absolute inset-0 bg-background/80 dark:bg-background/88 backdrop-blur-[1px]" />
+      <div className="live-atmosphere absolute inset-0" aria-hidden="true">
+        <div className="live-atmosphere-glow live-atmosphere-glow-one" />
+        <div className="live-atmosphere-glow live-atmosphere-glow-two" />
+        <div className="live-atmosphere-grid" />
+      </div>
     </div>
   );
 }

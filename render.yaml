@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: solarverseai
+    runtime: node
+    plan: free
+    buildCommand: npm ci && NITRO_PRESET=node-server npm run build
+    startCommand: node .output/server/index.mjs
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: NODE_ENV
+        value: production
+      - key: NITRO_PRESET
+        value: node-server
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: VITE_SUPABASE_PROJECT_ID
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: SUPABASE_PROJECT_ID
+        sync: false

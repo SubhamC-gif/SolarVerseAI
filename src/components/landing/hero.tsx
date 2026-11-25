@@ -81,7 +81,7 @@ export function Hero() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg" className="btn-shine group">
-                <Link to="/operator">
+                <Link to="/operator" preload="intent">
                   Explore Solar Intelligence
                   <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1" />
                 </Link>

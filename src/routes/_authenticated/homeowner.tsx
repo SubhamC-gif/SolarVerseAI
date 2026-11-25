@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { requireRole } from "@/lib/auth";
-import { useEffect, useState } from "react";
+import { useDeferredValue, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { LayoutGrid, Sun, Settings2, LineChart, IndianRupee, Battery, Leaf, FileText, Settings, ScanSearch, Cloud, CloudRain, LogOut, Plus, Trash2, Eye, Printer, Check, X } from "lucide-react";
@@ -53,6 +53,7 @@ const NAV = [
 
 function Homeowner() {
   const [view, setView] = useState("Overview");
+  const contentView = useDeferredValue(view);
   const { settings } = useSolarStore();
 
   const nav = NAV.map(n => ({
@@ -98,28 +99,28 @@ function Homeowner() {
       title={view === "Overview" ? "Good morning! Let's make your home solar-ready." : view} 
       subtitle={getSubtitle(view)}
     >
-      {view === "Overview" ? (
+      {contentView === "Overview" ? (
         <Overview onNavigate={setView} />
-      ) : view === "Fault Detection" ? (
+      ) : contentView === "Fault Detection" ? (
         <FaultDetectionUI />
-      ) : view === "Savings & ROI" ? (
+      ) : contentView === "Savings & ROI" ? (
         <SavingsRoi />
-      ) : view === "Solar Potential" ? (
+      ) : contentView === "Solar Potential" ? (
         <SolarPotentialView />
-      ) : view === "System Planner" ? (
+      ) : contentView === "System Planner" ? (
         <SystemPlanner />
-      ) : view === "Energy Forecast" ? (
+      ) : contentView === "Energy Forecast" ? (
         <EnergyForecast />
-      ) : view === "Battery Planner" ? (
+      ) : contentView === "Battery Planner" ? (
         <BatteryPlanner />
-      ) : view === "Environmental Impact" ? (
+      ) : contentView === "Environmental Impact" ? (
         <EnvironmentalImpact />
-      ) : view === "Settings" ? (
+      ) : contentView === "Settings" ? (
         <SettingsView />
-      ) : view === "My Reports" ? (
+      ) : contentView === "My Reports" ? (
         <MyReports />
       ) : (
-        <Panel title={view}>
+        <Panel title={contentView}>
           <div className="flex h-64 flex-col items-center justify-center text-center text-muted-foreground">
             <Sun className="h-12 w-12 opacity-20" />
             <p className="mt-4 italic">This section is currently under development.</p>

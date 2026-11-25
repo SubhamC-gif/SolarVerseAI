@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireRole } from "@/lib/auth";
-import { useState } from "react";
+import { useDeferredValue, useState } from "react";
 import { Activity, ScanSearch, LineChart, Wind, Wrench } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { PlantMonitoring } from "@/components/plant/monitoring";
@@ -42,6 +42,7 @@ const NAV = [
 
 function Operator() {
   const [view, setView] = useState<string>("Plant Monitoring");
+  const contentView = useDeferredValue(view);
 
   const nav = NAV.map((n) => ({
     ...n,
@@ -60,13 +61,13 @@ function Operator() {
       subtitle="AI-driven plant intelligence across your portfolio"
       badge="Demo data"
     >
-      {view === "Plant Monitoring" ? (
+      {contentView === "Plant Monitoring" ? (
         <PlantMonitoring />
-      ) : view === "Fault Detection" ? (
+      ) : contentView === "Fault Detection" ? (
         <FaultDetection />
-      ) : view === "Generation Forecasting" ? (
+      ) : contentView === "Generation Forecasting" ? (
         <GenerationForecast />
-      ) : view === "Soiling Analytics" ? (
+      ) : contentView === "Soiling Analytics" ? (
         <SoilingAnalytics />
       ) : (
         <PredictiveMaintenance />
