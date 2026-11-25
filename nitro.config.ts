@@ -12,5 +12,6 @@ export default defineConfig({
     "/assets/**": { headers: { "Cache-Control": "public, max-age=31536000, immutable" } },
     "/ort/**": { headers: { "Cache-Control": "public, max-age=86400" } },
     "/models/**": { headers: { "Cache-Control": "public, max-age=86400" } },
+    "/models/panel-fault.onnx": { headers: { "Content-Type": "application/octet-stream" } },
   },
 });
